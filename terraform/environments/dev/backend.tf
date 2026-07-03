@@ -3,10 +3,10 @@
 # `terraform init` is first run against this environment.
 terraform {
   backend "azurerm" {
-    resource_group_name = "rg-smartmeter-tfstate"
+    resource_group_name  = "rg-smartmeter-tfstate"
     storage_account_name = "stsmtrtfstateeus2"
-    container_name        = "tfstate"
-    key                    = "dev/smartmetering.tfstate"
-    use_azuread_auth       = true
+    container_name       = "tfstate"
+    key                  = "dev/smartmetering.tfstate"
+    use_azuread_auth     = true
   }
 }

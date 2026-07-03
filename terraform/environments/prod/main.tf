@@ -11,8 +11,8 @@ locals {
     var.tags
   )
 
-  name_prefix           = "smartmeter-${var.environment}"
-  dr_name_prefix         = "smartmeter-${var.environment}-dr"
+  name_prefix    = "smartmeter-${var.environment}"
+  dr_name_prefix = "smartmeter-${var.environment}-dr"
 }
 
 # Phase 1 scope note: see ../dev/main.tf header comment. Production additionally
