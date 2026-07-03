@@ -1,0 +1,52 @@
+# Databricks Job: nightly late-arrival reconciliation for Silver.
+#
+# Deliberately NOT a Lakeflow pipeline (see ADR-0003's "isolate genuinely
+# imperative logic outside Lakeflow" guidance and ADR-0010) — this is a
+# plain scheduled batch Spark job, so per ADR-0007 it runs on an ephemeral
+# Job Cluster rather than Serverless pipeline compute or an All-Purpose
+# cluster.
+
+resources:
+  jobs:
+    silver_late_arrival_reconciliation:
+      name: "smartmeter-${bundle.target}-silver-late-arrival-reconciliation"
+
+      # 02:30 local-to-the-workspace-timezone-UTC daily — after the prior
+      # day's ingest_date partition has fully closed, before BI refreshes
+      # that depend on Gold (which depends on this having run).
+      schedule:
+        quartz_cron_expression: "0 30 2 * * ?"
+        timezone_id: "UTC"
+        pause_status: ${var.silver_reconciliation_schedule_pause_status}
+
+      job_clusters:
+        - job_cluster_key: reconciliation_cluster
+          new_cluster:
+            spark_version: "15.4.x-scala2.12"
+            node_type_id: "Standard_D4ds_v5"
+            autoscale:
+              min_workers: 2
+              max_workers: 8
+            data_security_mode: SINGLE_USER
+            runtime_engine: PHOTON
+
+      tasks:
+        - task_key: reconcile
+          job_cluster_key: reconciliation_cluster
+          spark_python_task:
+            python_file: ../src/jobs/silver_late_arrival_reconciliation.py
+            parameters:
+              - "--catalog"
+              - ${var.catalog_name}
+              - "--lookback-days"
+              - ${var.silver_reconciliation_lookback_days}
+              - "--watermark-hours"
+              - ${var.silver_watermark_hours}
+              - "--max-clock-skew-hours"
+              - ${var.silver_max_clock_skew_hours}
+              - "--max-plausible-liters"
+              - ${var.silver_max_plausible_liters}
+
+      email_notifications:
+        on_failure:
+          - REPLACE-WITH-ONCALL-DISTRIBUTION-LIST@yourcompany.com

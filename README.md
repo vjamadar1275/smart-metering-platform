@@ -74,7 +74,7 @@ smart-metering-platform/
 | **1** | Repository structure, architecture, foundational Terraform, core docs | ✅ Complete |
 | **2** | Infrastructure: Databricks workspace, Unity Catalog, networking | ✅ Complete |
 | **3** | Streaming ingestion: Event Hubs → Structured Streaming → Bronze | ✅ Complete |
-| 4 | Silver: cleansing, validation, dedup, enrichment, watermarking | ⬜ Not started |
+| **4** | Silver: cleansing, validation, dedup, enrichment, watermarking | ✅ Complete |
 | 5 | Gold: business KPIs, DMA analytics, customer analytics | ⬜ Not started |
 | 6 | SQL Warehouses, dashboards, Power BI | ⬜ Not started |
 | 7 | Mosaic AI: leak detection, forecasting, anomaly detection, RAG/agents | ⬜ Not started |
@@ -82,7 +82,7 @@ smart-metering-platform/
 
 ## Getting Started
 
-As of Phase 2, `terraform/` defines real infrastructure (networking, Key Vault, managed identities, ADLS Gen2, the Databricks workspace, and Unity Catalog) for dev/staging/prod — but nothing has been applied to live Azure yet from this repo. Event Hub, SQL Warehouses, and full Monitoring remain interface-only until Phases 3/6/8.
+As of Phase 4, `terraform/` defines real infrastructure (networking, Key Vault, managed identities, ADLS Gen2, the Databricks workspace, Unity Catalog, and Event Hub) for dev/staging/prod — but nothing has been applied to live Azure yet from this repo. SQL Warehouses and full Monitoring remain interface-only until Phases 6/8. Bronze and Silver are real Lakeflow Declarative Pipelines (`src/pipelines/`, deployed via `databricks.yml` + `bundles/`); `reference.dim_meter`/`dim_customer`/`dim_dma` (`sql/ddl/reference/`) are directly-runnable seed scripts a human runs once per environment after Unity Catalog exists, since they have no upstream pipeline feed.
 
 ```bash
 # Review the architecture first

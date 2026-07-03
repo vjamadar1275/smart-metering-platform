@@ -34,6 +34,21 @@ variables:
   bronze_max_offsets_per_trigger:
     description: Kafka maxOffsetsPerTrigger for the Bronze streaming read — see src/config/<env>/bronze_pipeline.json.
     default: "2000000"
+  silver_watermark_hours:
+    description: Streaming watermark (hours) on reading_timestamp for Silver's apply_changes dedup — see ADR-0010.
+    default: "24"
+  silver_max_clock_skew_hours:
+    description: How far into the future a device reading_timestamp may plausibly be before Silver quarantines it.
+    default: "1"
+  silver_max_plausible_liters:
+    description: Sanity ceiling on a single cumulative reading, in liters, before Silver quarantines it as implausible.
+    default: "1000000000"
+  silver_reconciliation_lookback_days:
+    description: Days of Bronze ingest_date partitions the nightly late-arrival reconciliation job re-scans — must exceed silver_watermark_hours/24.
+    default: "3"
+  silver_reconciliation_schedule_pause_status:
+    description: UNPAUSED to let the reconciliation job run on its cron schedule, PAUSED to disable scheduled runs (e.g. in dev, where it can be triggered manually instead).
+    default: "UNPAUSED"
 
 targets:
   dev:
@@ -46,10 +61,13 @@ targets:
       event_hub_namespace: REPLACE-WITH-DEV-EVENT-HUB-NAMESPACE # from: terraform output (module.event_hub.namespace_name)
       secret_scope: smartmeter-dev-secrets
       bronze_max_offsets_per_trigger: "200000"
+      silver_reconciliation_schedule_pause_status: "PAUSED"
     resources:
       pipelines:
         bronze_meter_telemetry:
           development: true # dev only: iterate on pipeline updates without a full production restart
+        silver_meter_readings:
+          development: true
 
   staging:
     mode: production

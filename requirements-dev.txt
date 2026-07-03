@@ -1,0 +1,14 @@
+# Local/CI development dependencies for tests/unit/ — not shipped to any
+# Databricks Runtime, which provides its own pyspark + Lakeflow-augmented
+# pyspark.pipelines at execution time (see the F821 exemption for
+# src/pipelines/** in pyproject.toml). This file exists so
+# `pip install -r requirements-dev.txt && pytest` reproduces what CI runs
+# (added Phase 8) for the plain-PySpark logic in src/libs/ and src/jobs/.
+#
+# pyspark requires a local JDK (11 or 17+) on PATH to run tests.
+
+pyspark==4.1.2
+pytest==9.1.1
+ruff==0.15.20
+black==26.5.1
+fastavro==1.12.2

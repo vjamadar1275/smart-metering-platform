@@ -1,0 +1,15 @@
+{
+  "_comment": "Canonical per-environment config for the Silver pipeline + its nightly late-arrival reconciliation job. Mirrored into bundles/silver_pipeline.yml and bundles/silver_late_arrival_reconciliation_job.yml's target.dev.variables by convention — see src/config/dev/bronze_pipeline.json for the full explanation of this file's role.",
+  "environment": "dev",
+  "catalog_name": "smartmeter_dev",
+  "silver": {
+    "watermark_hours": 24,
+    "max_clock_skew_hours": 1,
+    "max_plausible_liters": 1000000000
+  },
+  "reconciliation": {
+    "lookback_days": 3,
+    "schedule_pause_status": "PAUSED",
+    "note": "Paused in dev: dev's functional-testing device subset doesn't produce a meaningful late-arrival backlog; triggered manually when testing this job."
+  }
+}
