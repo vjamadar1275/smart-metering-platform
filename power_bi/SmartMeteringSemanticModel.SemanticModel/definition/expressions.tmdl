@@ -1,0 +1,31 @@
+expression 'Databricks Host' = "REPLACE-WITH-WORKSPACE-HOST" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 6a1b2c3d-0001-4000-8000-000000000001
+	annotation PBI_ResultType = Text
+
+expression 'Databricks HTTP Path' = "REPLACE-WITH-SQLW-BI-HTTP-PATH" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 6a1b2c3d-0002-4000-8000-000000000002
+	annotation PBI_ResultType = Text
+
+expression 'Catalog Name' = "smartmeter_dev" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 6a1b2c3d-0004-4000-8000-000000000004
+	annotation PBI_ResultType = Text
+
+/// Shared data source: navigates to the target environment's Unity Catalog
+/// catalog/gold schema via the Databricks connector, DirectQuery mode.
+///
+/// This is implemented as **DirectQuery**, not the Direct Lake mode
+/// docs/architecture/ARCHITECTURE.md names as the target for Gold-mapped
+/// tables — Direct Lake's exact TMDL/M wiring against a Databricks Unity
+/// Catalog source (as opposed to a native Fabric Lakehouse) needs
+/// verification in a real Power BI/Fabric workspace before being
+/// committed here as fact rather than best guess. See power_bi/README.md
+/// for the open item to switch this once validated.
+expression DatabaseQuery = let
+		Source = Databricks.Catalogs('Databricks Host', 'Databricks HTTP Path', [EnableAutoAggregation=false]),
+		Catalog = Source{[Name = 'Catalog Name']}[Data],
+		Schema = Catalog{[Name = "gold", Kind = "Schema"]}[Data]
+	in
+		Schema
+	meta [IsParameterQuery=true, IsParameterQueryRequired=false]
+	lineageTag: 6a1b2c3d-0003-4000-8000-000000000003
+	annotation PBI_ResultType = Table

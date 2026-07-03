@@ -1,0 +1,68 @@
+table OperationalDashboard
+	lineageTag: 5c4ae16c-5c7b-4769-8b9a-f0fdc2f815b8
+
+	column active_meter_count
+		dataType: int64
+		lineageTag: b9f0b9ff-b87b-4ff7-bb98-0730c11f0ba8
+		summarizeBy: none
+		sourceColumn: active_meter_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column readings_ingested
+		dataType: int64
+		lineageTag: 3534dc7c-17d9-4cfd-a76a-aa4d86ff264f
+		summarizeBy: none
+		sourceColumn: readings_ingested
+
+		annotation SummarizationSetBy = Automatic
+
+	column low_battery_reading_count
+		dataType: int64
+		lineageTag: df88b863-91d5-4027-ab26-6e62c4dea9ca
+		summarizeBy: none
+		sourceColumn: low_battery_reading_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column quarantined_count
+		dataType: int64
+		lineageTag: 593bd43f-3472-4b65-ac16-cb2ee0101dae
+		summarizeBy: none
+		sourceColumn: quarantined_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column quarantine_rate_pct
+		dataType: double
+		lineageTag: a2480d81-4d8c-406b-b468-c43754607acc
+		summarizeBy: none
+		formatString: 0.00%
+		sourceColumn: quarantine_rate_pct
+
+		annotation SummarizationSetBy = Automatic
+
+	column dma_leak_flag_count
+		dataType: int64
+		lineageTag: 68910fad-91c8-4973-87f3-3a8132524ba8
+		summarizeBy: none
+		sourceColumn: dma_leak_flag_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column as_of
+		dataType: dateTime
+		lineageTag: d3b7393c-2b32-4986-82c9-24cd1cb5c08c
+		summarizeBy: none
+		formatString: General Date
+		sourceColumn: as_of
+
+		annotation SummarizationSetBy = Automatic
+
+	partition OperationalDashboard = entity
+		mode: directQuery
+		source
+			entityName: operational_dashboard
+			schemaName: gold
+			expressionSource: DatabaseQuery
+

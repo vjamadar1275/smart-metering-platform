@@ -1,0 +1,179 @@
+{
+  "datasets": [
+    {
+      "name": "ds_executive_snapshot",
+      "displayName": "Executive Snapshot",
+      "query": "SELECT * FROM ${var.catalog_name}.gold.executive_dashboard ORDER BY as_of DESC LIMIT 1"
+    },
+    {
+      "name": "ds_consumption_trend_30d",
+      "displayName": "Total Consumption, Last 30 Days",
+      "query": "SELECT reading_date, sum(consumption_liters) AS total_liters FROM ${var.catalog_name}.gold.daily_usage WHERE reading_date >= date_sub(current_date(), 30) GROUP BY reading_date ORDER BY reading_date"
+    },
+    {
+      "name": "ds_nrw_trend_30d",
+      "displayName": "Systemwide NRW %, Last 30 Days",
+      "query": "SELECT reading_date, sum(non_revenue_water_liters) / nullif(sum(estimated_supply_liters), 0) * 100 AS systemwide_nrw_pct FROM ${var.catalog_name}.gold.dma_analytics WHERE reading_date >= date_sub(current_date(), 30) GROUP BY reading_date ORDER BY reading_date"
+    }
+  ],
+  "pages": [
+    {
+      "name": "executive",
+      "displayName": "Executive Summary",
+      "layout": [
+        {
+          "widget": {
+            "name": "total_consumption_counter",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_executive_snapshot",
+                  "fields": [{ "name": "total_consumption_liters", "expression": "`total_consumption_liters`" }]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": { "value": { "fieldName": "total_consumption_liters", "displayName": "Total Consumption (L), Latest Complete Day" } }
+            }
+          },
+          "position": { "x": 0, "y": 0, "width": 2, "height": 3 }
+        },
+        {
+          "widget": {
+            "name": "systemwide_nrw_counter",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_executive_snapshot",
+                  "fields": [{ "name": "systemwide_nrw_pct", "expression": "`systemwide_nrw_pct`" }]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": { "value": { "fieldName": "systemwide_nrw_pct", "displayName": "Systemwide NRW % (estimate — see ADR-0011)", "format": { "type": "number-percent" } } }
+            }
+          },
+          "position": { "x": 2, "y": 0, "width": 2, "height": 3 }
+        },
+        {
+          "widget": {
+            "name": "high_usage_customers_counter",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_executive_snapshot",
+                  "fields": [{ "name": "high_usage_customer_count", "expression": "`high_usage_customer_count`" }]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": { "value": { "fieldName": "high_usage_customer_count", "displayName": "High-Usage Customers" } }
+            }
+          },
+          "position": { "x": 4, "y": 0, "width": 2, "height": 3 }
+        },
+        {
+          "widget": {
+            "name": "dma_leak_flag_counter",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_executive_snapshot",
+                  "fields": [{ "name": "dma_leak_flag_count", "expression": "`dma_leak_flag_count`" }]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": { "value": { "fieldName": "dma_leak_flag_count", "displayName": "DMAs with Leak Flag" } }
+            }
+          },
+          "position": { "x": 6, "y": 0, "width": 2, "height": 3 }
+        },
+        {
+          "widget": {
+            "name": "segment_volume_bar",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_executive_snapshot",
+                  "fields": [
+                    { "name": "residential_liters", "expression": "`residential_liters`" },
+                    { "name": "commercial_liters", "expression": "`commercial_liters`" },
+                    { "name": "industrial_liters", "expression": "`industrial_liters`" }
+                  ]
+                }
+              }
+            ],
+            "spec": { "version": 1, "widgetType": "bar", "encodings": {} }
+          },
+          "position": { "x": 0, "y": 3, "width": 4, "height": 6 }
+        },
+        {
+          "widget": {
+            "name": "consumption_trend_chart",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_consumption_trend_30d",
+                  "fields": [
+                    { "name": "reading_date", "expression": "`reading_date`" },
+                    { "name": "total_liters", "expression": "`total_liters`" }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": { "fieldName": "reading_date", "scale": { "type": "temporal" } },
+                "y": { "fieldName": "total_liters", "scale": { "type": "quantitative" } }
+              }
+            }
+          },
+          "position": { "x": 4, "y": 3, "width": 4, "height": 6 }
+        },
+        {
+          "widget": {
+            "name": "nrw_trend_chart",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_nrw_trend_30d",
+                  "fields": [
+                    { "name": "reading_date", "expression": "`reading_date`" },
+                    { "name": "systemwide_nrw_pct", "expression": "`systemwide_nrw_pct`" }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": { "fieldName": "reading_date", "scale": { "type": "temporal" } },
+                "y": { "fieldName": "systemwide_nrw_pct", "scale": { "type": "quantitative" } }
+              }
+            }
+          },
+          "position": { "x": 0, "y": 9, "width": 8, "height": 6 }
+        }
+      ]
+    }
+  ]
+}

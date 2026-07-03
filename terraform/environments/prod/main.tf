@@ -211,3 +211,63 @@ module "unity_catalog" {
     databricks.workspace = databricks.workspace
   }
 }
+
+# --- SQL Warehouses: workload-isolated per ADR-0005 (Phase 6) ---
+# prod sized for headroom toward the design-target device count, per
+# meter_device_count_target's own rationale above; revisit once Phase 8
+# Lakehouse Monitoring/query history gives real usage data (ADR-0005's
+# consequence).
+
+module "sql_warehouse_bi" {
+  source = "../../modules/sql-warehouse"
+
+  environment            = var.environment
+  warehouse_name         = "sqlw-bi"
+  warehouse_purpose      = "bi"
+  cluster_size           = "Small"
+  min_clusters           = 2
+  max_clusters           = 8
+  auto_stop_minutes      = 10
+  authorized_group_names = var.sql_warehouse_bi_group_names
+  tags                   = local.standard_tags
+
+  providers = {
+    databricks.workspace = databricks.workspace
+  }
+}
+
+module "sql_warehouse_adhoc" {
+  source = "../../modules/sql-warehouse"
+
+  environment            = var.environment
+  warehouse_name         = "sqlw-adhoc"
+  warehouse_purpose      = "adhoc"
+  cluster_size           = "Medium"
+  min_clusters           = 2
+  max_clusters           = 6
+  auto_stop_minutes      = 20
+  authorized_group_names = var.sql_warehouse_adhoc_group_names
+  tags                   = local.standard_tags
+
+  providers = {
+    databricks.workspace = databricks.workspace
+  }
+}
+
+module "sql_warehouse_executive" {
+  source = "../../modules/sql-warehouse"
+
+  environment            = var.environment
+  warehouse_name         = "sqlw-executive"
+  warehouse_purpose      = "executive"
+  cluster_size           = "Small"
+  min_clusters           = 2
+  max_clusters           = 4
+  auto_stop_minutes      = 10
+  authorized_group_names = var.sql_warehouse_executive_group_names
+  tags                   = local.standard_tags
+
+  providers = {
+    databricks.workspace = databricks.workspace
+  }
+}

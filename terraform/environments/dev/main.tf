@@ -195,3 +195,61 @@ module "unity_catalog" {
     databricks.workspace = databricks.workspace
   }
 }
+
+# --- SQL Warehouses: workload-isolated per ADR-0005 (Phase 6) ---
+# dev sizing is deliberately minimal (2X-Small, low cluster counts) —
+# functional testing of query routing/access, not a throughput benchmark.
+
+module "sql_warehouse_bi" {
+  source = "../../modules/sql-warehouse"
+
+  environment            = var.environment
+  warehouse_name         = "sqlw-bi"
+  warehouse_purpose      = "bi"
+  cluster_size           = "2X-Small"
+  min_clusters           = 1
+  max_clusters           = 2
+  auto_stop_minutes      = 10
+  authorized_group_names = var.sql_warehouse_bi_group_names
+  tags                   = local.standard_tags
+
+  providers = {
+    databricks.workspace = databricks.workspace
+  }
+}
+
+module "sql_warehouse_adhoc" {
+  source = "../../modules/sql-warehouse"
+
+  environment            = var.environment
+  warehouse_name         = "sqlw-adhoc"
+  warehouse_purpose      = "adhoc"
+  cluster_size           = "2X-Small"
+  min_clusters           = 1
+  max_clusters           = 2
+  auto_stop_minutes      = 20 # higher than bi/executive — avoid cold-start thrash during analyst sessions, per ADR-0005
+  authorized_group_names = var.sql_warehouse_adhoc_group_names
+  tags                   = local.standard_tags
+
+  providers = {
+    databricks.workspace = databricks.workspace
+  }
+}
+
+module "sql_warehouse_executive" {
+  source = "../../modules/sql-warehouse"
+
+  environment            = var.environment
+  warehouse_name         = "sqlw-executive"
+  warehouse_purpose      = "executive"
+  cluster_size           = "2X-Small"
+  min_clusters           = 1
+  max_clusters           = 1
+  auto_stop_minutes      = 10
+  authorized_group_names = var.sql_warehouse_executive_group_names
+  tags                   = local.standard_tags
+
+  providers = {
+    databricks.workspace = databricks.workspace
+  }
+}

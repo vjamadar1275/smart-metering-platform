@@ -100,3 +100,21 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "sql_warehouse_bi_group_names" {
+  description = "Entra ID / account-console group names granted CAN_USE on sqlw-bi — per ADR-0005, broad access for scheduled BI/Power BI refreshes."
+  type        = list(string)
+  default     = ["smartmeter-prod-bi-consumers"]
+}
+
+variable "sql_warehouse_adhoc_group_names" {
+  description = "Entra ID / account-console group names granted CAN_USE on sqlw-adhoc — per ADR-0005, all analysts."
+  type        = list(string)
+  default     = ["smartmeter-prod-analysts"]
+}
+
+variable "sql_warehouse_executive_group_names" {
+  description = "Entra ID / account-console group names granted CAN_USE on sqlw-executive — per ADR-0005, a small named group, deliberately narrower than sqlw-adhoc's."
+  type        = list(string)
+  default     = ["smartmeter-prod-executives"]
+}

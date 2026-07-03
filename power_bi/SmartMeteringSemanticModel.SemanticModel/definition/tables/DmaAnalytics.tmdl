@@ -1,0 +1,148 @@
+table DmaAnalytics
+	lineageTag: c7d9cc62-fc1b-4272-b477-9b8987c8f938
+
+	column dma_id
+		dataType: string
+		lineageTag: 7238cf27-8d8c-497c-8e16-a2cb2fa7f2b4
+		summarizeBy: none
+		sourceColumn: dma_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column dma_name
+		dataType: string
+		lineageTag: d3f55af4-9423-451a-8d86-39394200a2db
+		summarizeBy: none
+		sourceColumn: dma_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column zone
+		dataType: string
+		lineageTag: b88674cb-a224-46a6-97ff-756adff8257c
+		summarizeBy: none
+		sourceColumn: zone
+
+		annotation SummarizationSetBy = Automatic
+
+	column reading_date
+		dataType: dateTime
+		lineageTag: 166b167a-ad61-4236-bc4a-c7befd17cd02
+		summarizeBy: none
+		formatString: Short Date
+		sourceColumn: reading_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column population_served
+		dataType: int64
+		lineageTag: c7c21d29-17ac-409a-8f45-47e7da217c88
+		summarizeBy: none
+		sourceColumn: population_served
+
+		annotation SummarizationSetBy = Automatic
+
+	column active_meter_count
+		dataType: int64
+		lineageTag: 3a271e08-f712-4a9e-9d8b-921f856e3944
+		summarizeBy: sum
+		sourceColumn: active_meter_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column metered_consumption_liters
+		dataType: double
+		lineageTag: b152b4c4-dea9-4e20-87e2-b5a49c3e533e
+		summarizeBy: sum
+		formatString: #,0.0
+		sourceColumn: metered_consumption_liters
+
+		annotation SummarizationSetBy = Automatic
+
+	column target_nrw_pct
+		dataType: double
+		lineageTag: 5040c0b1-a7aa-4566-b5cd-6ad7fd116ba8
+		summarizeBy: none
+		formatString: 0.0%
+		sourceColumn: target_nrw_pct
+
+		annotation SummarizationSetBy = Automatic
+
+	column estimated_supply_liters
+		dataType: double
+		lineageTag: a6ae8593-aff4-4f48-b748-231f3054645d
+		summarizeBy: sum
+		formatString: #,0.0
+		sourceColumn: estimated_supply_liters
+
+		annotation SummarizationSetBy = Automatic
+
+	column non_revenue_water_liters
+		dataType: double
+		lineageTag: e8d7151c-3973-4e11-a921-a212485147d4
+		summarizeBy: sum
+		formatString: #,0.0
+		sourceColumn: non_revenue_water_liters
+
+		annotation SummarizationSetBy = Automatic
+
+	column non_revenue_water_pct
+		dataType: double
+		lineageTag: 30df767e-f13b-47a9-a63a-c409fecf2fd5
+		summarizeBy: none
+		formatString: 0.0%
+		sourceColumn: non_revenue_water_pct
+
+		annotation SummarizationSetBy = Automatic
+
+	column avg_night_flow_lpm
+		dataType: double
+		lineageTag: ba881ad2-91a5-40ef-9a09-280f9550fd98
+		summarizeBy: none
+		formatString: #,0.00
+		sourceColumn: avg_night_flow_lpm
+
+		annotation SummarizationSetBy = Automatic
+
+	column trailing_14d_avg_night_flow_lpm
+		dataType: double
+		lineageTag: 98853476-b99f-4c40-9fbd-00569ecc5c55
+		summarizeBy: none
+		formatString: #,0.00
+		sourceColumn: trailing_14d_avg_night_flow_lpm
+
+		annotation SummarizationSetBy = Automatic
+
+	column night_flow_anomaly_flag
+		dataType: boolean
+		lineageTag: 6e0bc473-a503-4720-99ed-f098fa0bfa8f
+		summarizeBy: none
+		sourceColumn: night_flow_anomaly_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column meters_with_usage_anomaly
+		dataType: int64
+		lineageTag: 5ccb07c7-00d8-40f0-a727-3a952d0ea195
+		summarizeBy: sum
+		sourceColumn: meters_with_usage_anomaly
+
+		annotation SummarizationSetBy = Automatic
+
+	measure 'Non-Revenue Water % (estimate)' = DIVIDE(SUM(DmaAnalytics[non_revenue_water_liters]), SUM(DmaAnalytics[estimated_supply_liters]))
+		formatString: 0.0%
+		lineageTag: e798ef29-812d-4a6a-a529-2f12033973b8
+
+
+	measure 'DMAs with Leak Flag' = CALCULATE(DISTINCTCOUNT(DmaAnalytics[dma_id]), DmaAnalytics[night_flow_anomaly_flag] = TRUE)
+		formatString: #,0
+		lineageTag: f6a03cbf-7d31-4e35-859f-94cccfbf097a
+
+
+	partition DmaAnalytics = entity
+		mode: directQuery
+		source
+			entityName: dma_analytics
+			schemaName: gold
+			expressionSource: DatabaseQuery
+

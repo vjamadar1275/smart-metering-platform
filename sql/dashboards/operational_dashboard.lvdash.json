@@ -1,0 +1,156 @@
+{
+  "datasets": [
+    {
+      "name": "ds_operational_snapshot",
+      "displayName": "Operational Snapshot",
+      "query": "SELECT * FROM ${var.catalog_name}.gold.operational_dashboard ORDER BY as_of DESC LIMIT 1"
+    },
+    {
+      "name": "ds_dma_leak_flags",
+      "displayName": "DMA Leak Flags",
+      "query": "SELECT dma_id, dma_name, zone, avg_night_flow_lpm, trailing_14d_avg_night_flow_lpm, night_flow_anomaly_flag FROM ${var.catalog_name}.gold.dma_analytics WHERE reading_date = (SELECT max(reading_date) FROM ${var.catalog_name}.gold.dma_analytics) ORDER BY night_flow_anomaly_flag DESC, avg_night_flow_lpm DESC"
+    },
+    {
+      "name": "ds_usage_anomalies_trend",
+      "displayName": "Usage Anomalies, Last 14 Days",
+      "query": "SELECT reading_date, count(*) AS anomaly_count FROM ${var.catalog_name}.gold.daily_usage WHERE usage_anomaly_flag = true AND reading_date >= date_sub(current_date(), 14) GROUP BY reading_date ORDER BY reading_date"
+    }
+  ],
+  "pages": [
+    {
+      "name": "operations",
+      "displayName": "Operations",
+      "layout": [
+        {
+          "widget": {
+            "name": "active_meters_counter",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_operational_snapshot",
+                  "fields": [{ "name": "active_meter_count", "expression": "`active_meter_count`" }]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": { "value": { "fieldName": "active_meter_count", "displayName": "Active Meters Today" } }
+            }
+          },
+          "position": { "x": 0, "y": 0, "width": 2, "height": 3 }
+        },
+        {
+          "widget": {
+            "name": "quarantine_rate_counter",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_operational_snapshot",
+                  "fields": [{ "name": "quarantine_rate_pct", "expression": "`quarantine_rate_pct`" }]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": { "value": { "fieldName": "quarantine_rate_pct", "displayName": "Quarantine Rate %", "format": { "type": "number-percent" } } }
+            }
+          },
+          "position": { "x": 2, "y": 0, "width": 2, "height": 3 }
+        },
+        {
+          "widget": {
+            "name": "low_battery_counter",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_operational_snapshot",
+                  "fields": [{ "name": "low_battery_reading_count", "expression": "`low_battery_reading_count`" }]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": { "value": { "fieldName": "low_battery_reading_count", "displayName": "Low-Battery Readings Today" } }
+            }
+          },
+          "position": { "x": 4, "y": 0, "width": 2, "height": 3 }
+        },
+        {
+          "widget": {
+            "name": "dma_leak_flag_counter",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_operational_snapshot",
+                  "fields": [{ "name": "dma_leak_flag_count", "expression": "`dma_leak_flag_count`" }]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": { "value": { "fieldName": "dma_leak_flag_count", "displayName": "DMAs with Leak Flag" } }
+            }
+          },
+          "position": { "x": 6, "y": 0, "width": 2, "height": 3 }
+        },
+        {
+          "widget": {
+            "name": "dma_leak_flags_table",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_dma_leak_flags",
+                  "fields": [
+                    { "name": "dma_id", "expression": "`dma_id`" },
+                    { "name": "dma_name", "expression": "`dma_name`" },
+                    { "name": "zone", "expression": "`zone`" },
+                    { "name": "avg_night_flow_lpm", "expression": "`avg_night_flow_lpm`" },
+                    { "name": "trailing_14d_avg_night_flow_lpm", "expression": "`trailing_14d_avg_night_flow_lpm`" },
+                    { "name": "night_flow_anomaly_flag", "expression": "`night_flow_anomaly_flag`" }
+                  ]
+                }
+              }
+            ],
+            "spec": { "version": 1, "widgetType": "table", "encodings": {} }
+          },
+          "position": { "x": 0, "y": 3, "width": 8, "height": 6 }
+        },
+        {
+          "widget": {
+            "name": "usage_anomalies_trend_chart",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_usage_anomalies_trend",
+                  "fields": [
+                    { "name": "reading_date", "expression": "`reading_date`" },
+                    { "name": "anomaly_count", "expression": "`anomaly_count`" }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": { "fieldName": "reading_date", "scale": { "type": "temporal" } },
+                "y": { "fieldName": "anomaly_count", "scale": { "type": "quantitative" } }
+              }
+            }
+          },
+          "position": { "x": 0, "y": 9, "width": 8, "height": 6 }
+        }
+      ]
+    }
+  ]
+}

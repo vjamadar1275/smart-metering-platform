@@ -1,0 +1,103 @@
+{
+  "datasets": [
+    {
+      "name": "ds_dma_analytics_latest",
+      "displayName": "DMA Analytics, Latest Day",
+      "query": "SELECT dma_id, dma_name, zone, metered_consumption_liters, estimated_supply_liters, non_revenue_water_pct, active_meter_count FROM ${var.catalog_name}.gold.dma_analytics WHERE reading_date = (SELECT max(reading_date) FROM ${var.catalog_name}.gold.dma_analytics) ORDER BY metered_consumption_liters DESC"
+    },
+    {
+      "name": "ds_customer_trend_distribution",
+      "displayName": "Customer Trend Distribution, Latest Day",
+      "query": "SELECT trend_direction, count(*) AS customer_count FROM ${var.catalog_name}.gold.customer_analytics WHERE reading_date = (SELECT max(reading_date) FROM ${var.catalog_name}.gold.customer_analytics) GROUP BY trend_direction"
+    },
+    {
+      "name": "ds_hourly_consumption_today",
+      "displayName": "Hourly Consumption, Today",
+      "query": "SELECT hour_start, sum(consumption_liters) AS total_liters FROM ${var.catalog_name}.gold.hourly_consumption WHERE date(hour_start) = current_date() GROUP BY hour_start ORDER BY hour_start"
+    }
+  ],
+  "pages": [
+    {
+      "name": "consumption_trends",
+      "displayName": "Consumption Trends",
+      "layout": [
+        {
+          "widget": {
+            "name": "dma_analytics_table",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_dma_analytics_latest",
+                  "fields": [
+                    { "name": "dma_id", "expression": "`dma_id`" },
+                    { "name": "dma_name", "expression": "`dma_name`" },
+                    { "name": "zone", "expression": "`zone`" },
+                    { "name": "metered_consumption_liters", "expression": "`metered_consumption_liters`" },
+                    { "name": "estimated_supply_liters", "expression": "`estimated_supply_liters`" },
+                    { "name": "non_revenue_water_pct", "expression": "`non_revenue_water_pct`" },
+                    { "name": "active_meter_count", "expression": "`active_meter_count`" }
+                  ]
+                }
+              }
+            ],
+            "spec": { "version": 1, "widgetType": "table", "encodings": {} }
+          },
+          "position": { "x": 0, "y": 0, "width": 8, "height": 6 }
+        },
+        {
+          "widget": {
+            "name": "customer_trend_pie",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_customer_trend_distribution",
+                  "fields": [
+                    { "name": "trend_direction", "expression": "`trend_direction`" },
+                    { "name": "customer_count", "expression": "`customer_count`" }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": { "fieldName": "customer_count", "scale": { "type": "quantitative" } },
+                "color": { "fieldName": "trend_direction", "scale": { "type": "categorical" } }
+              }
+            }
+          },
+          "position": { "x": 0, "y": 6, "width": 4, "height": 6 }
+        },
+        {
+          "widget": {
+            "name": "hourly_consumption_today_chart",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_hourly_consumption_today",
+                  "fields": [
+                    { "name": "hour_start", "expression": "`hour_start`" },
+                    { "name": "total_liters", "expression": "`total_liters`" }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": { "fieldName": "hour_start", "scale": { "type": "temporal" } },
+                "y": { "fieldName": "total_liters", "scale": { "type": "quantitative" } }
+              }
+            }
+          },
+          "position": { "x": 4, "y": 6, "width": 4, "height": 6 }
+        }
+      ]
+    }
+  ]
+}

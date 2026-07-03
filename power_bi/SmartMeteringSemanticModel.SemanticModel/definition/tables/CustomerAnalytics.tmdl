@@ -1,0 +1,105 @@
+table CustomerAnalytics
+	lineageTag: e7e69ce3-818f-4d1b-9b87-ec20d3fc0904
+
+	column customer_id
+		dataType: string
+		lineageTag: 6d07ffb0-6179-4689-ab30-ffeddd3c2c0c
+		summarizeBy: none
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column reading_date
+		dataType: dateTime
+		lineageTag: 7002a21c-8b73-45f0-abb6-b8cac45d21c9
+		summarizeBy: none
+		formatString: Short Date
+		sourceColumn: reading_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column consumption_liters
+		dataType: double
+		lineageTag: 2e88b195-4dd0-4cfe-addf-6d12725ce119
+		summarizeBy: sum
+		formatString: #,0.0
+		sourceColumn: consumption_liters
+
+		annotation SummarizationSetBy = Automatic
+
+	column meter_count
+		dataType: int64
+		lineageTag: 14202092-ffb1-4735-806b-20ab7e7c3931
+		summarizeBy: sum
+		sourceColumn: meter_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column account_type
+		dataType: string
+		lineageTag: 076deff2-2180-4659-a3a3-89bb64d44664
+		summarizeBy: none
+		sourceColumn: account_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column rolling_30d_avg_liters
+		dataType: double
+		lineageTag: 66b28dab-5cbd-4897-b778-aca0a3481a8b
+		summarizeBy: none
+		formatString: #,0.0
+		sourceColumn: rolling_30d_avg_liters
+
+		annotation SummarizationSetBy = Automatic
+
+	column recent_7d_avg_liters
+		dataType: double
+		lineageTag: 33e3fe52-ab21-4659-99d1-090e42324b55
+		summarizeBy: none
+		formatString: #,0.0
+		sourceColumn: recent_7d_avg_liters
+
+		annotation SummarizationSetBy = Automatic
+
+	column prior_7d_avg_liters
+		dataType: double
+		lineageTag: 53d224ab-2d7b-466f-b84e-457581f27971
+		summarizeBy: none
+		formatString: #,0.0
+		sourceColumn: prior_7d_avg_liters
+
+		annotation SummarizationSetBy = Automatic
+
+	column trend_direction
+		dataType: string
+		lineageTag: 36bb872e-143b-4d29-9394-6768fa66cd1d
+		summarizeBy: none
+		sourceColumn: trend_direction
+
+		annotation SummarizationSetBy = Automatic
+
+	column high_usage_flag
+		dataType: boolean
+		lineageTag: 3dadfae5-7cb2-468a-bc9b-71e7a35dd281
+		summarizeBy: none
+		sourceColumn: high_usage_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	measure 'High-Usage Customers' = CALCULATE(DISTINCTCOUNT(CustomerAnalytics[customer_id]), CustomerAnalytics[high_usage_flag] = TRUE)
+		formatString: #,0
+		lineageTag: 93e54822-128e-425b-b324-ac5707844fbc
+
+
+	measure 'Total Customer Consumption (L)' = SUM(CustomerAnalytics[consumption_liters])
+		formatString: #,0
+		lineageTag: 223f8955-9778-41e3-bc00-52e7b0bdc55e
+
+
+	partition CustomerAnalytics = entity
+		mode: directQuery
+		source
+			entityName: customer_analytics
+			schemaName: gold
+			expressionSource: DatabaseQuery
+

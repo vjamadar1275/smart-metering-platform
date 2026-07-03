@@ -1,0 +1,25 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	discourageImplicitMeasures
+
+annotation PBI_QueryOrder = ["DatabaseQuery"]
+
+ref table DailyUsage
+ref table HourlyConsumption
+ref table DmaAnalytics
+ref table CustomerAnalytics
+ref table OperationalDashboard
+ref table ExecutiveDashboard
+ref table DateDimension
+
+ref expression 'Databricks Host'
+ref expression 'Databricks HTTP Path'
+ref expression 'Catalog Name'
+ref expression DatabaseQuery
+
+ref relationship 903467b0-ec04-4da4-b5ae-cfe226c77adc
+ref relationship bda17c64-b63f-445b-91bc-49504200e74e
+ref relationship 1d7a1deb-829d-4d65-87d6-0b9e1bfaa33d
+ref relationship 33f87a64-55a7-4e56-a4be-994fc016ed36

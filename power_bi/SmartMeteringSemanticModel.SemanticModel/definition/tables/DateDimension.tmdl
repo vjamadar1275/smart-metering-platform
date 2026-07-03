@@ -1,0 +1,60 @@
+table DateDimension
+	lineageTag: 6192b367-c33e-4616-be96-f4f85116a227
+
+	column Date
+		dataType: dateTime
+		lineageTag: efbc7729-a29b-4af6-8989-1ea97935e4fb
+		summarizeBy: none
+		formatString: Short Date
+		sourceColumn: [Date]
+		dataCategory: PaddedDateTableDates
+
+		annotation SummarizationSetBy = Automatic
+
+	column Year
+		dataType: int64
+		lineageTag: a67bff53-b84e-4082-96c9-0ab530026e6f
+		summarizeBy: none
+		sourceColumn: [Year]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Month Name'
+		dataType: string
+		lineageTag: c4280821-0f63-439a-ba39-31dffb12cb24
+		summarizeBy: none
+		sourceColumn: [Month Name]
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthNumber
+		dataType: int64
+		lineageTag: a964668b-90b7-4a16-be1c-dd84e8b91112
+		summarizeBy: none
+		sourceColumn: [MonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Day of Week'
+		dataType: string
+		lineageTag: c875e7a0-4aae-4292-a021-91e32d11a3ac
+		summarizeBy: none
+		sourceColumn: [Day of Week]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DateDimension = calculated
+		mode: import
+		source =
+				VAR MinDate = DATE(2025, 1, 1)
+				VAR MaxDate = DATE(2030, 12, 31)
+				RETURN
+					ADDCOLUMNS(
+						CALENDAR(MinDate, MaxDate),
+						"Year", YEAR([Date]),
+						"Month Name", FORMAT([Date], "MMMM"),
+						"MonthNumber", MONTH([Date]),
+						"Day of Week", FORMAT([Date], "dddd")
+					)
+
+	annotation __PBI_TimeIntelligenceEnabled = 1

@@ -56,6 +56,12 @@ variables:
   gold_daily_marts_pause_status:
     description: UNPAUSED/PAUSED for the daily Gold batch marts refresh schedule — paused by default in dev, same rationale as late_arrival_reconciliation_pause_status.
     default: "UNPAUSED"
+  sql_warehouse_bi_id:
+    description: SQL Warehouse ID for sqlw-bi — from `terraform output sql_warehouse_ids` (terraform/environments/<env>). See bundles/dashboards.yml.
+  sql_warehouse_adhoc_id:
+    description: SQL Warehouse ID for sqlw-adhoc — from `terraform output sql_warehouse_ids`.
+  sql_warehouse_executive_id:
+    description: SQL Warehouse ID for sqlw-executive — from `terraform output sql_warehouse_ids`.
 
 targets:
   dev:
@@ -71,6 +77,9 @@ targets:
       seed_reference_data_meter_count: "2000"
       late_arrival_reconciliation_pause_status: "PAUSED"
       gold_daily_marts_pause_status: "PAUSED"
+      sql_warehouse_bi_id: REPLACE-WITH-DEV-SQLW-BI-ID # from: terraform output sql_warehouse_ids (terraform/environments/dev)
+      sql_warehouse_adhoc_id: REPLACE-WITH-DEV-SQLW-ADHOC-ID
+      sql_warehouse_executive_id: REPLACE-WITH-DEV-SQLW-EXECUTIVE-ID
     resources:
       pipelines:
         bronze_meter_telemetry:
@@ -91,6 +100,9 @@ targets:
       event_hub_namespace: REPLACE-WITH-STAGING-EVENT-HUB-NAMESPACE
       secret_scope: smartmeter-staging-secrets
       seed_reference_data_meter_count: "100000"
+      sql_warehouse_bi_id: REPLACE-WITH-STAGING-SQLW-BI-ID
+      sql_warehouse_adhoc_id: REPLACE-WITH-STAGING-SQLW-ADHOC-ID
+      sql_warehouse_executive_id: REPLACE-WITH-STAGING-SQLW-EXECUTIVE-ID
     run_as:
       service_principal_name: REPLACE-WITH-CICD-SERVICE-PRINCIPAL # module.managed_identity["cicd-deploy"], staging
 
@@ -102,5 +114,8 @@ targets:
       catalog_name: smartmeter_prod
       event_hub_namespace: REPLACE-WITH-PROD-EVENT-HUB-NAMESPACE
       secret_scope: smartmeter-prod-secrets
+      sql_warehouse_bi_id: REPLACE-WITH-PROD-SQLW-BI-ID
+      sql_warehouse_adhoc_id: REPLACE-WITH-PROD-SQLW-ADHOC-ID
+      sql_warehouse_executive_id: REPLACE-WITH-PROD-SQLW-EXECUTIVE-ID
     run_as:
       service_principal_name: REPLACE-WITH-CICD-SERVICE-PRINCIPAL # module.managed_identity["cicd-deploy"], prod

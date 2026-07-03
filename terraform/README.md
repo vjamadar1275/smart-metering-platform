@@ -1,10 +1,10 @@
 # Terraform — Infrastructure as Code
 
-## Scope as of Phase 2
+## Scope as of Phase 6
 
-**Implemented** (real `azurerm_*` / `databricks_*` resources, wired into dev/staging/prod): `networking`, `key-vault`, `managed-identity`, `storage`, `databricks-workspace`, `unity-catalog` — this is Phase 2, "Infrastructure: Databricks Workspace, Unity Catalog, Networking," per the [delivery phase plan](../README.md#delivery-phases).
+**Implemented** (real `azurerm_*` / `databricks_*` resources, wired into dev/staging/prod): `networking`, `key-vault`, `managed-identity`, `storage`, `databricks-workspace`, `unity-catalog` (Phase 2), `event-hub` (Phase 3), `sql-warehouse` (Phase 6) — per the [delivery phase plan](../README.md#delivery-phases).
 
-**Interface-only** (variables/outputs defined, resources added in their own phase): `event-hub` (Phase 3), `sql-warehouse` (Phase 6), `monitoring` (Phase 8).
+**Interface-only** (variables/outputs defined, resources added in their own phase): `monitoring` (Phase 8).
 
 `terraform init` / `fmt` / `validate` pass for all three environments today. `terraform plan` / `apply` require real Azure credentials and a bootstrapped state backend (see below) — not available in this repo's CI-less local scaffolding, so they haven't been run against live Azure yet; validate this yourself before your first real apply.
 

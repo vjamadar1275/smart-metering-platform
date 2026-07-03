@@ -1,0 +1,124 @@
+table DailyUsage
+	lineageTag: 3b41b240-8bfa-4ccb-a9e7-57a04b9f617c
+
+	column meter_id
+		dataType: string
+		lineageTag: 27cb3d76-dc2c-46fb-8e4f-69072696675d
+		summarizeBy: none
+		sourceColumn: meter_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column reading_date
+		dataType: dateTime
+		lineageTag: be779ac0-4e3e-4432-a4ba-a98c219b29ed
+		summarizeBy: none
+		formatString: Short Date
+		sourceColumn: reading_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column consumption_liters
+		dataType: double
+		lineageTag: 578ed79f-22b3-434d-a96f-f7254a63e32c
+		summarizeBy: sum
+		formatString: #,0.0
+		sourceColumn: consumption_liters
+
+		annotation SummarizationSetBy = Automatic
+
+	column reading_count
+		dataType: int64
+		lineageTag: f58b91cc-63a4-4dc7-8e0b-87d11311fea5
+		summarizeBy: sum
+		sourceColumn: reading_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column min_battery_pct
+		dataType: int64
+		lineageTag: 570f3447-1c19-4f45-9458-646d5c450799
+		summarizeBy: min
+		sourceColumn: min_battery_pct
+
+		annotation SummarizationSetBy = Automatic
+
+	column dma_id
+		dataType: string
+		lineageTag: 250258f9-c6a4-4fa3-a172-fc7cc94e25c2
+		summarizeBy: none
+		sourceColumn: dma_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column dma_name
+		dataType: string
+		lineageTag: 8ecc8a14-5b94-4902-b334-194d6d368f8d
+		summarizeBy: none
+		sourceColumn: dma_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_id
+		dataType: string
+		lineageTag: ef73d703-58f2-433c-b29f-33bd26e9fb53
+		summarizeBy: none
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column account_type
+		dataType: string
+		lineageTag: 020e3015-f51d-46ca-bec9-4cd14e2c31d6
+		summarizeBy: none
+		sourceColumn: account_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column meter_type
+		dataType: string
+		lineageTag: 0a6e7d68-600e-417f-8c76-14011a23a25e
+		summarizeBy: none
+		sourceColumn: meter_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column trailing_7d_avg_liters
+		dataType: double
+		lineageTag: 84264e1c-a4c0-48d1-9a43-677c2a0aba51
+		summarizeBy: none
+		formatString: #,0.0
+		sourceColumn: trailing_7d_avg_liters
+
+		annotation SummarizationSetBy = Automatic
+
+	column usage_anomaly_flag
+		dataType: boolean
+		lineageTag: 2c46c2d8-e44a-464c-9938-2b9c6ba3aef8
+		summarizeBy: none
+		sourceColumn: usage_anomaly_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	measure 'Total Consumption (L)' = SUM(DailyUsage[consumption_liters])
+		formatString: #,0
+		lineageTag: b9c11910-f97e-4906-b8a1-219d51f3973b
+
+
+	measure 'Anomalous Meter Days' = CALCULATE(COUNTROWS(DailyUsage), DailyUsage[usage_anomaly_flag] = TRUE)
+		formatString: #,0
+		lineageTag: 835ac626-ec7e-4a9b-a6ef-17ae8f344ee3
+
+
+	measure 'Active Meters' = DISTINCTCOUNT(DailyUsage[meter_id])
+		formatString: #,0
+		lineageTag: 4374ee24-597f-4d29-97bd-2c434d49476c
+
+
+	partition DailyUsage = entity
+		mode: directQuery
+		source
+			entityName: daily_usage
+			schemaName: gold
+			expressionSource: DatabaseQuery
+

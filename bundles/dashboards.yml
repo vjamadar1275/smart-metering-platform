@@ -1,0 +1,25 @@
+# Lakeview dashboards (sql/dashboards/*.lvdash.json). See ADR-0005 for the
+# warehouse each dashboard routes to and sql/dashboards/README.md for what
+# each one shows.
+#
+# warehouse_id values come from `terraform output sql_warehouse_ids` after
+# Phase 6 Terraform apply — same "genuinely only knowable once real
+# infrastructure exists" situation as databricks.yml's workspace hosts and
+# Event Hub namespace variables.
+
+resources:
+  dashboards:
+    operational_dashboard:
+      display_name: "Smart Metering — Operations (${bundle.target})"
+      file_path: ../sql/dashboards/operational_dashboard.lvdash.json
+      warehouse_id: ${var.sql_warehouse_bi_id}
+
+    executive_dashboard:
+      display_name: "Smart Metering — Executive Summary (${bundle.target})"
+      file_path: ../sql/dashboards/executive_dashboard.lvdash.json
+      warehouse_id: ${var.sql_warehouse_executive_id}
+
+    consumption_trends:
+      display_name: "Smart Metering — Consumption Trends (${bundle.target})"
+      file_path: ../sql/dashboards/consumption_trends.lvdash.json
+      warehouse_id: ${var.sql_warehouse_adhoc_id}

@@ -1,0 +1,136 @@
+table HourlyConsumption
+	lineageTag: b9247feb-8ee4-47ba-a4d3-941ae831d631
+
+	column meter_id
+		dataType: string
+		lineageTag: 8b77b798-3dc2-4382-b257-20c83d5b8749
+		summarizeBy: none
+		sourceColumn: meter_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column hour_start
+		dataType: dateTime
+		lineageTag: e070752c-18fd-4ee3-b3c9-d6d1143a7b64
+		summarizeBy: none
+		formatString: General Date
+		sourceColumn: hour_start
+
+		annotation SummarizationSetBy = Automatic
+
+	column hour_end
+		dataType: dateTime
+		lineageTag: df9187cb-bf73-4095-9f7d-fb991ebca8fe
+		isHidden
+		summarizeBy: none
+		formatString: General Date
+		sourceColumn: hour_end
+
+		annotation SummarizationSetBy = Automatic
+
+	column consumption_liters
+		dataType: double
+		lineageTag: 3a08cafe-4876-4927-bd72-59f88ba6c18f
+		summarizeBy: sum
+		formatString: #,0.0
+		sourceColumn: consumption_liters
+
+		annotation SummarizationSetBy = Automatic
+
+	column reading_count
+		dataType: int64
+		lineageTag: 78b27bf1-ad13-48f5-afcd-d122ab3be228
+		summarizeBy: sum
+		sourceColumn: reading_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column avg_flow_rate_lpm
+		dataType: double
+		lineageTag: 2ede6a5f-22c0-43bc-aa43-e57087349f62
+		summarizeBy: none
+		formatString: #,0.00
+		sourceColumn: avg_flow_rate_lpm
+
+		annotation SummarizationSetBy = Automatic
+
+	column min_battery_pct
+		dataType: int64
+		lineageTag: 48b34b7f-775b-4fc8-9bad-a73aa38162e4
+		summarizeBy: min
+		sourceColumn: min_battery_pct
+
+		annotation SummarizationSetBy = Automatic
+
+	column avg_signal_quality
+		dataType: double
+		lineageTag: 024a7160-1aa2-4e31-80eb-05a05f532aef
+		summarizeBy: none
+		formatString: #,0.0
+		sourceColumn: avg_signal_quality
+
+		annotation SummarizationSetBy = Automatic
+
+	column dma_id
+		dataType: string
+		lineageTag: db474453-9fb8-48b8-b9ae-6feb4464e538
+		summarizeBy: none
+		sourceColumn: dma_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column dma_name
+		dataType: string
+		lineageTag: 1ddcf7d7-be4c-4fc2-ab95-61085395d268
+		summarizeBy: none
+		sourceColumn: dma_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_id
+		dataType: string
+		lineageTag: eea30ef7-39be-4387-97a8-638506235934
+		summarizeBy: none
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column meter_type
+		dataType: string
+		lineageTag: 81b450b4-0ec8-4120-ab7d-8f14cd52dec5
+		summarizeBy: none
+		sourceColumn: meter_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column account_type
+		dataType: string
+		lineageTag: e6b266d1-750d-4c32-8797-19146615c5cf
+		summarizeBy: none
+		sourceColumn: account_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		dataType: dateTime
+		lineageTag: 76e73957-bb8b-4a7c-9ca8-c8e1a0a182ba
+		summarizeBy: none
+		formatString: Short Date
+		isDataTypeInferred
+		type: calculated
+		expression = DATE(YEAR([hour_start]), MONTH([hour_start]), DAY([hour_start]))
+
+		annotation SummarizationSetBy = Automatic
+
+	measure 'Total Consumption (L)' = SUM(HourlyConsumption[consumption_liters])
+		formatString: #,0
+		lineageTag: 450b900e-a62f-4a98-a5a3-655e9ec3ba2f
+
+
+	partition HourlyConsumption = entity
+		mode: directQuery
+		source
+			entityName: hourly_consumption
+			schemaName: gold
+			expressionSource: DatabaseQuery
+

@@ -1,0 +1,115 @@
+table ExecutiveDashboard
+	lineageTag: b6d4f16a-5789-45e0-9f7b-edcc7f11c105
+
+	column total_consumption_liters
+		dataType: double
+		lineageTag: 39cc2751-ed7e-4689-bb56-0c4cc71daa32
+		summarizeBy: none
+		formatString: #,0.0
+		sourceColumn: total_consumption_liters
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_customers
+		dataType: int64
+		lineageTag: 557a899e-f305-487e-b6c3-23f4557fc834
+		summarizeBy: none
+		sourceColumn: total_customers
+
+		annotation SummarizationSetBy = Automatic
+
+	column residential_liters
+		dataType: double
+		lineageTag: 8e10145f-40d5-42e4-9642-9d4bee436f59
+		summarizeBy: none
+		formatString: #,0.0
+		sourceColumn: residential_liters
+
+		annotation SummarizationSetBy = Automatic
+
+	column commercial_liters
+		dataType: double
+		lineageTag: c0372620-a71c-439c-a3b2-3c67fbac63e6
+		summarizeBy: none
+		formatString: #,0.0
+		sourceColumn: commercial_liters
+
+		annotation SummarizationSetBy = Automatic
+
+	column industrial_liters
+		dataType: double
+		lineageTag: 79d0c9be-3cab-4487-a3e4-e6b87ee39cd9
+		summarizeBy: none
+		formatString: #,0.0
+		sourceColumn: industrial_liters
+
+		annotation SummarizationSetBy = Automatic
+
+	column unknown_segment_liters
+		dataType: double
+		lineageTag: 0bf1219c-d908-4611-9a7e-cb85cecdebb0
+		summarizeBy: none
+		formatString: #,0.0
+		sourceColumn: unknown_segment_liters
+
+		annotation SummarizationSetBy = Automatic
+
+	column high_usage_customer_count
+		dataType: int64
+		lineageTag: 70cf99c4-cb93-4476-b2b2-08ebf597f246
+		summarizeBy: none
+		sourceColumn: high_usage_customer_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_non_revenue_water_liters
+		dataType: double
+		lineageTag: f175df4d-0ced-4a86-88e3-7d7b45275b13
+		summarizeBy: none
+		formatString: #,0.0
+		sourceColumn: total_non_revenue_water_liters
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_estimated_supply_liters
+		dataType: double
+		lineageTag: 80824a5f-e7af-49e6-be51-63ba5c5d2b3c
+		summarizeBy: none
+		formatString: #,0.0
+		sourceColumn: total_estimated_supply_liters
+
+		annotation SummarizationSetBy = Automatic
+
+	column systemwide_nrw_pct
+		dataType: double
+		lineageTag: 7955044a-3e29-4b3a-bd80-d2284f480988
+		summarizeBy: none
+		formatString: 0.0%
+		sourceColumn: systemwide_nrw_pct
+
+		annotation SummarizationSetBy = Automatic
+
+	column dma_leak_flag_count
+		dataType: int64
+		lineageTag: da5d209c-c1cf-42df-8cd3-7366adf3ccf0
+		summarizeBy: none
+		sourceColumn: dma_leak_flag_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column as_of
+		dataType: dateTime
+		lineageTag: e0bed48f-1f91-4327-aebb-30c00dae21b8
+		summarizeBy: none
+		formatString: General Date
+		sourceColumn: as_of
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ExecutiveDashboard = entity
+		mode: directQuery
+		source
+			entityName: executive_dashboard
+			schemaName: gold
+			expressionSource: DatabaseQuery
+

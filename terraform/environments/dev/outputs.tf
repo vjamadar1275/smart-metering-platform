@@ -32,3 +32,12 @@ output "catalog_name" {
   description = "Unity Catalog catalog name created for this environment."
   value       = module.unity_catalog.catalog_name
 }
+
+output "sql_warehouse_ids" {
+  description = "SQL Warehouse IDs, for populating bundles/dashboards.yml and Power BI semantic model data source connections (see power_bi/README.md)."
+  value = {
+    bi        = module.sql_warehouse_bi.warehouse_id
+    adhoc     = module.sql_warehouse_adhoc.warehouse_id
+    executive = module.sql_warehouse_executive.warehouse_id
+  }
+}

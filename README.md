@@ -76,13 +76,13 @@ smart-metering-platform/
 | **3** | Streaming ingestion: Event Hubs → Structured Streaming → Bronze | ✅ Complete |
 | **4** | Silver: cleansing, validation, dedup, enrichment, watermarking | ✅ Complete |
 | **5** | Gold: business KPIs, DMA analytics, customer analytics | ✅ Complete |
-| 6 | SQL Warehouses, dashboards, Power BI | ⬜ Not started |
+| **6** | SQL Warehouses, dashboards, Power BI | ✅ Complete |
 | 7 | Mosaic AI: leak detection, forecasting, anomaly detection, RAG/agents | ⬜ Not started |
 | 8 | Security hardening, governance, monitoring, CI/CD, production readiness | ⬜ Not started |
 
 ## Getting Started
 
-As of Phase 2, `terraform/` defines real infrastructure (networking, Key Vault, managed identities, ADLS Gen2, the Databricks workspace, and Unity Catalog) for dev/staging/prod — but nothing has been applied to live Azure yet from this repo. Event Hub, SQL Warehouses, and full Monitoring remain interface-only until Phases 6/8.
+As of Phase 6, `terraform/` defines real infrastructure (networking, Key Vault, managed identities, ADLS Gen2, the Databricks workspace, Unity Catalog, Event Hub, and workload-isolated SQL Warehouses) for dev/staging/prod — but nothing has been applied to live Azure yet from this repo. Full Monitoring remains interface-only until Phase 8.
 
 ```bash
 # Review the architecture first
