@@ -32,7 +32,27 @@ variable "enable_firewall" {
 variable "firewall_allowed_fqdns" {
   description = "FQDN allow-list for Azure Firewall application rules (package repos, Databricks/MLflow artifact endpoints, etc.)."
   type        = list(string)
-  default     = []
+  default = [
+    "pypi.org",
+    "files.pythonhosted.org",
+    "repo.anaconda.com",
+    "repo.maven.apache.org",
+    "*.pythonhosted.org",
+    "security.ubuntu.com",
+    "archive.ubuntu.com",
+  ]
+}
+
+variable "private_dns_zone_names" {
+  description = "Private DNS zones to create and link to the VNet, for the privatelink-enabled PaaS services this platform depends on."
+  type        = list(string)
+  default = [
+    "privatelink.blob.core.windows.net",
+    "privatelink.dfs.core.windows.net",
+    "privatelink.vaultcore.azure.net",
+    "privatelink.azuredatabricks.net",
+    "privatelink.servicebus.windows.net",
+  ]
 }
 
 variable "tags" {

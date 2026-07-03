@@ -2,7 +2,7 @@
 
 Provisions the VNet, subnets (public/NAT, Databricks-private, private-endpoints, firewall), NSGs, Azure Firewall, and Private DNS zones described in [docs/architecture/diagrams/network-diagram.md](../../../docs/architecture/diagrams/network-diagram.md).
 
-**Status**: interface defined (Phase 1); resources implemented in Phase 2.
+**Status**: implemented (Phase 2).
 
 ## Inputs / Outputs
 

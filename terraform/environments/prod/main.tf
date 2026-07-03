@@ -15,11 +15,15 @@ locals {
   dr_name_prefix = "smartmeter-${var.environment}-dr"
 }
 
-# Phase 1 scope note: see ../dev/main.tf header comment. Production additionally
+# Phase 2 scope: see ../dev/main.tf header comment. Production additionally
 # provisions secondary-region resource groups for the warm-standby DR strategy
 # documented in docs/architecture/diagrams/disaster-recovery-diagram.md; the
-# resources within them (Event Hubs Geo-DR pairing, ADLS GZRS, standby Databricks
-# workspace) are wired in Phase 2/8 alongside the rest of the infrastructure modules.
+# resources within them (Event Hubs Geo-DR pairing, ADLS GZRS replica, standby
+# Databricks workspace) are wired in Phase 3/8 alongside the modules that own
+# them (event-hub, monitoring) — this phase provisions the DR resource groups
+# only, so they exist as a stable target for those later modules.
+
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "network" {
   name     = "rg-${local.name_prefix}-network"
@@ -57,4 +61,108 @@ resource "azurerm_resource_group" "dr_databricks" {
   name     = "rg-${local.dr_name_prefix}-databricks"
   location = var.secondary_region
   tags     = merge(local.standard_tags, { role = "disaster-recovery" })
+}
+
+module "networking" {
+  source = "../../modules/networking"
+
+  environment         = var.environment
+  region              = var.primary_region
+  resource_group_name = azurerm_resource_group.network.name
+  vnet_address_space  = var.vnet_address_space
+  subnet_cidrs        = var.subnet_cidrs
+  enable_firewall     = var.enable_firewall
+  tags                = local.standard_tags
+}
+
+module "key_vault" {
+  source = "../../modules/key-vault"
+
+  environment                = var.environment
+  region                     = var.primary_region
+  resource_group_name        = azurerm_resource_group.data.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  purge_protection_enabled   = true
+  private_endpoint_subnet_id = module.networking.subnet_ids["private_endpoints"]
+  private_dns_zone_id        = module.networking.private_dns_zone_ids["privatelink.vaultcore.azure.net"]
+  authorized_principals = {
+    deployer = {
+      principal_id = data.azurerm_client_config.current.object_id
+      role         = "Key Vault Administrator"
+    }
+  }
+  tags = local.standard_tags
+}
+
+module "managed_identity" {
+  source = "../../modules/managed-identity"
+
+  environment         = var.environment
+  region              = var.primary_region
+  resource_group_name = azurerm_resource_group.databricks.name
+  identities          = ["bronze-pipeline", "silver-pipeline", "gold-pipeline", "model-serving", "cicd-deploy"]
+  tags                = local.standard_tags
+}
+
+module "storage" {
+  source = "../../modules/storage"
+
+  environment                = var.environment
+  region                     = var.primary_region
+  resource_group_name        = azurerm_resource_group.data.name
+  account_replication_type   = "GZRS" # geo-zone-redundant: backs the warm-standby DR strategy
+  containers                 = ["bronze", "silver", "gold", "checkpoints", "unity-catalog-root"]
+  private_endpoint_subnet_id = module.networking.subnet_ids["private_endpoints"]
+  private_dns_zone_ids = {
+    blob = module.networking.private_dns_zone_ids["privatelink.blob.core.windows.net"]
+    dfs  = module.networking.private_dns_zone_ids["privatelink.dfs.core.windows.net"]
+  }
+  tags = local.standard_tags
+}
+
+module "databricks_workspace" {
+  source = "../../modules/databricks-workspace"
+
+  environment                       = var.environment
+  region                            = var.primary_region
+  resource_group_name               = azurerm_resource_group.databricks.name
+  sku                               = "premium"
+  vnet_id                           = module.networking.vnet_id
+  public_subnet_name                = module.networking.subnet_names["databricks_public"]
+  private_subnet_name               = module.networking.subnet_names["databricks_private"]
+  public_subnet_nsg_association_id  = module.networking.nsg_association_ids["databricks_public"]
+  private_subnet_nsg_association_id = module.networking.nsg_association_ids["databricks_private"]
+  no_public_ip                      = true
+  managed_resource_group_name       = "rg-${local.name_prefix}-databricks-managed"
+  tags                              = local.standard_tags
+}
+
+locals {
+  unity_catalog_container       = "unity-catalog-root"
+  metastore_storage_root_url    = "abfss://${local.unity_catalog_container}@${module.storage.storage_account_name}.dfs.core.windows.net/"
+  catalog_name                  = "smartmeter_${var.environment}"
+  catalog_external_location_url = "abfss://${local.unity_catalog_container}@${module.storage.storage_account_name}.dfs.core.windows.net/catalogs/${local.catalog_name}/"
+}
+
+module "unity_catalog" {
+  source = "../../modules/unity-catalog"
+
+  environment                = var.environment
+  region                     = var.primary_region
+  resource_group_name        = azurerm_resource_group.databricks.name
+  metastore_name             = "metastore-smartmeter-${var.environment}-${var.primary_region}" # prod: dedicated metastore, not shared, per ADR-0006
+  create_metastore           = true
+  metastore_storage_root_url = local.metastore_storage_root_url
+  metastore_owner            = var.metastore_owner_group
+  workspace_id_numeric       = module.databricks_workspace.workspace_id_numeric
+  storage_account_id         = module.storage.storage_account_id
+  catalog_name               = local.catalog_name
+  external_location_url      = local.catalog_external_location_url
+  tags                       = local.standard_tags
+
+  providers = {
+    databricks.account   = databricks.account
+    databricks.workspace = databricks.workspace
+  }
 }

@@ -41,14 +41,23 @@ variable "soft_delete_retention_days" {
   default     = 90
 }
 
-variable "authorized_object_ids" {
-  description = "Map of access-policy label to Entra object ID (service principals/managed identities) authorized to manage secrets/keys."
-  type        = map(string)
-  default     = {}
+variable "authorized_principals" {
+  description = "Map of label to { principal_id, role } granting RBAC access to the vault (Key Vault Secrets Officer / Key Vault Crypto Officer / etc). RBAC is used instead of legacy vault access policies per Microsoft's current guidance."
+  type = map(object({
+    principal_id = string
+    role         = optional(string, "Key Vault Secrets User")
+  }))
+  default = {}
 }
 
 variable "private_endpoint_subnet_id" {
   description = "Subnet ID for the Key Vault's Private Endpoint (from the networking module)."
+  type        = string
+  default     = null
+}
+
+variable "private_dns_zone_id" {
+  description = "Resource ID of the privatelink.vaultcore.azure.net Private DNS zone (from the networking module), linked to the Private Endpoint's DNS zone group."
   type        = string
   default     = null
 }

@@ -16,10 +16,26 @@ provider "azurerm" {
 provider "azuread" {}
 
 provider "databricks" {
-  # Phase 2: configured for account-level (Unity Catalog metastore, workspace creation)
-  # via azure_client_id / azure_client_secret / azure_tenant_id sourced from Key Vault-backed
-  # environment variables in CI, never committed to tfvars.
-  host = var.databricks_account_console_url
+  # Account-level: manages the Unity Catalog metastore and its workspace
+  # assignment. Auth (ARM_CLIENT_ID / ARM_CLIENT_SECRET / ARM_TENANT_ID or
+  # Azure CLI) is sourced from the environment in CI, never committed to
+  # tfvars — see ../../README.md#workflow.
+  alias      = "account"
+  host       = var.databricks_account_console_url
+  account_id = var.databricks_account_id
+}
+
+provider "databricks" {
+  # Workspace-level: manages catalogs/schemas/storage credentials inside the
+  # workspace created by module.databricks_workspace in this same apply.
+  # Known caveat: since this provider's host is computed from a resource
+  # created in the same run, the very first `terraform apply` must create
+  # the workspace before any workspace-level databricks_* resource can be
+  # planned — Terraform handles the ordering automatically via the implicit
+  # dependency, but `-target` and `destroy` need the same care Databricks'
+  # own reference examples call out for this exact pattern.
+  alias = "workspace"
+  host  = module.databricks_workspace.workspace_url
 }
 
 provider "random" {}

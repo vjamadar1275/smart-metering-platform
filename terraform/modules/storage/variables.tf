@@ -47,6 +47,18 @@ variable "private_endpoint_subnet_id" {
   default     = null
 }
 
+variable "private_dns_zone_ids" {
+  description = "Map with keys 'blob' and 'dfs' -> Private DNS zone resource IDs (privatelink.blob.core.windows.net / privatelink.dfs.core.windows.net), from the networking module."
+  type        = map(string)
+  default     = {}
+}
+
+variable "account_name_override" {
+  description = "Optional explicit storage account name (must be globally unique, 3-24 lowercase alphanumeric characters). If null, a name is derived from environment+region."
+  type        = string
+  default     = null
+}
+
 variable "tags" {
   description = "Tags applied to all resources created by this module."
   type        = map(string)

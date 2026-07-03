@@ -1,12 +1,13 @@
 # Copy to terraform.tfvars (gitignored) and fill in real values.
 # Never commit terraform.tfvars — only this .example file is version controlled.
 
-subscription_id  = "00000000-0000-0000-0000-000000000000"
-primary_region   = "eastus2"
-secondary_region = "centralus"
-owner            = "data-platform-team"
-cost_center      = "CC-1234-WATER-DATA"
-enable_dr_region = true
+subscription_id       = "00000000-0000-0000-0000-000000000000"
+databricks_account_id = "00000000-0000-0000-0000-000000000000"
+primary_region        = "eastus2"
+secondary_region      = "centralus"
+owner                 = "data-platform-team"
+cost_center           = "CC-1234-WATER-DATA"
+enable_dr_region      = true
 
 tags = {
   business_unit = "smart-metering"

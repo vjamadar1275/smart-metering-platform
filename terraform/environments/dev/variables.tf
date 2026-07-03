@@ -37,6 +37,40 @@ variable "databricks_account_console_url" {
   default     = "https://accounts.azuredatabricks.net"
 }
 
+variable "databricks_account_id" {
+  description = "Databricks account ID (GUID, from the account console). Required for account-level provider operations (metastore creation/assignment)."
+  type        = string
+}
+
+variable "metastore_owner_group" {
+  description = "Account-level group name that owns/administers the Unity Catalog metastore this environment creates."
+  type        = string
+  default     = "account-admins"
+}
+
+variable "vnet_address_space" {
+  description = "CIDR address space for this environment's VNet."
+  type        = list(string)
+  default     = ["10.20.0.0/16"]
+}
+
+variable "subnet_cidrs" {
+  description = "Per-purpose subnet CIDRs within the VNet address space."
+  type        = map(string)
+  default = {
+    databricks_public  = "10.20.1.0/24"
+    databricks_private = "10.20.2.0/24"
+    private_endpoints  = "10.20.3.0/24"
+    firewall           = "10.20.0.0/26"
+  }
+}
+
+variable "enable_firewall" {
+  description = "Whether to provision Azure Firewall for egress filtering. Dev defaults to false to avoid the fixed hourly cost of a firewall for a non-production environment; staging/prod default to true."
+  type        = bool
+  default     = false
+}
+
 variable "meter_device_count_target" {
   description = "Design-target device count this environment's sizing should accommodate (informational; drives module sizing inputs added in Phase 2)."
   type        = number

@@ -69,8 +69,8 @@ smart-metering-platform/
 
 | Phase | Scope | Status |
 |---|---|---|
-| **1** | Repository structure, architecture, foundational Terraform, core docs | ✅ In progress (this commit) |
-| 2 | Infrastructure: Databricks workspace, Unity Catalog, networking | ⬜ Not started |
+| **1** | Repository structure, architecture, foundational Terraform, core docs | ✅ Complete |
+| **2** | Infrastructure: Databricks workspace, Unity Catalog, networking | ✅ Complete |
 | 3 | Streaming ingestion: Event Hubs → Structured Streaming → Bronze | ⬜ Not started |
 | 4 | Silver: cleansing, validation, dedup, enrichment, watermarking | ⬜ Not started |
 | 5 | Gold: business KPIs, DMA analytics, customer analytics | ⬜ Not started |
@@ -78,19 +78,24 @@ smart-metering-platform/
 | 7 | Mosaic AI: leak detection, forecasting, anomaly detection, RAG/agents | ⬜ Not started |
 | 8 | Security hardening, governance, monitoring, CI/CD, production readiness | ⬜ Not started |
 
-## Getting Started (Phase 1)
+## Getting Started
 
-Phase 1 ships architecture and IaC scaffolding only — no cloud resources are created yet (Phase 2 will `apply` real infrastructure).
+As of Phase 2, `terraform/` defines real infrastructure (networking, Key Vault, managed identities, ADLS Gen2, the Databricks workspace, and Unity Catalog) for dev/staging/prod — but nothing has been applied to live Azure yet from this repo. Event Hub, SQL Warehouses, and full Monitoring remain interface-only until Phases 3/6/8.
 
 ```bash
 # Review the architecture first
 open docs/architecture/ARCHITECTURE.md
 
-# Validate Terraform scaffolding formatting/syntax (no backend configured yet)
+# Validate Terraform formatting/syntax (no backend configured, so no state/credentials needed)
 cd terraform/environments/dev
 terraform fmt -check -recursive
 terraform init -backend=false
 terraform validate
+
+# A real deployment additionally requires: a bootstrapped state backend
+# (terraform/README.md#state-backend), a populated terraform.tfvars (copy
+# terraform.tfvars.example), and Azure/Databricks credentials — none of
+# which exist yet in this repository.
 ```
 
 ## Documentation

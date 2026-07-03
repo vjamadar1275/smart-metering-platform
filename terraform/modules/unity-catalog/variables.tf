@@ -8,8 +8,13 @@ variable "region" {
   type        = string
 }
 
+variable "resource_group_name" {
+  description = "Resource group the Azure Databricks Access Connector is created in."
+  type        = string
+}
+
 variable "metastore_name" {
-  description = "Name of the Unity Catalog metastore. Only created if create_metastore is true; otherwise this module attaches to an existing metastore by name."
+  description = "Name of the Unity Catalog metastore. Only used if create_metastore is true."
   type        = string
 }
 
@@ -19,13 +24,31 @@ variable "create_metastore" {
   default     = false
 }
 
-variable "metastore_storage_root_url" {
-  description = "abfss:// URL of the ADLS container used as the metastore's default managed storage root."
+variable "existing_metastore_id" {
+  description = "Metastore ID to attach to when create_metastore is false (e.g. staging passes dev's metastore_id output, read via a terraform_remote_state data source at the environment root)."
   type        = string
+  default     = null
+}
+
+variable "metastore_storage_root_url" {
+  description = "abfss:// URL of the ADLS container used as the metastore's default managed storage root. Only used if create_metastore is true."
+  type        = string
+  default     = null
+}
+
+variable "metastore_owner" {
+  description = "Account-level group name that owns/administers the metastore. Only used if create_metastore is true."
+  type        = string
+  default     = "account-admins"
 }
 
 variable "workspace_id_numeric" {
   description = "Numeric ID of the Databricks workspace to bind to this metastore."
+  type        = string
+}
+
+variable "storage_account_id" {
+  description = "Resource ID of the ADLS Gen2 storage account (from the storage module) that the Access Connector is granted Storage Blob Data Contributor on."
   type        = string
 }
 
@@ -42,11 +65,6 @@ variable "schemas" {
 
 variable "external_location_url" {
   description = "abfss:// URL for this catalog's external location (may differ from the metastore root, e.g. a dedicated storage account per environment)."
-  type        = string
-}
-
-variable "storage_credential_managed_identity_id" {
-  description = "Resource ID of the Managed Identity Unity Catalog uses to access the external location's storage account."
   type        = string
 }
 

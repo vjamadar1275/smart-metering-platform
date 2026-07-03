@@ -39,6 +39,16 @@ variable "private_subnet_name" {
   type        = string
 }
 
+variable "public_subnet_nsg_association_id" {
+  description = "Resource ID of the azurerm_subnet_network_security_group_association for the public subnet (from the networking module) — required by Databricks to sequence NSG association before workspace creation."
+  type        = string
+}
+
+variable "private_subnet_nsg_association_id" {
+  description = "Resource ID of the azurerm_subnet_network_security_group_association for the private subnet (from the networking module)."
+  type        = string
+}
+
 variable "no_public_ip" {
   description = "Disable public IPs on cluster nodes (Secure Cluster Connectivity). Must be true for prod."
   type        = bool

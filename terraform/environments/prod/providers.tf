@@ -16,10 +16,18 @@ provider "azurerm" {
 provider "azuread" {}
 
 provider "databricks" {
-  # Phase 2: configured for account-level (Unity Catalog metastore, workspace creation)
-  # via azure_client_id / azure_client_secret / azure_tenant_id sourced from Key Vault-backed
-  # environment variables in CI, never committed to tfvars.
-  host = var.databricks_account_console_url
+  # Account-level: manages prod's dedicated Unity Catalog metastore (not
+  # shared with dev/staging, per ADR-0006) and its workspace assignment.
+  alias      = "account"
+  host       = var.databricks_account_console_url
+  account_id = var.databricks_account_id
+}
+
+provider "databricks" {
+  # Workspace-level: see the caveat comment in ../dev/providers.tf — the
+  # same pattern applies here.
+  alias = "workspace"
+  host  = module.databricks_workspace.workspace_url
 }
 
 provider "random" {}
