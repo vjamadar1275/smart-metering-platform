@@ -50,6 +50,12 @@ variables:
   late_arrival_reconciliation_pause_status:
     description: UNPAUSED/PAUSED for the nightly reconciliation job's schedule — paused by default in dev, where there's no continuous production data flow to reconcile.
     default: "UNPAUSED"
+  gold_hourly_watermark_duration:
+    description: Structured Streaming watermark on reading_timestamp for gold.hourly_consumption — see src/pipelines/gold/gold_hourly_consumption.py.
+    default: "26 hours"
+  gold_daily_marts_pause_status:
+    description: UNPAUSED/PAUSED for the daily Gold batch marts refresh schedule — paused by default in dev, same rationale as late_arrival_reconciliation_pause_status.
+    default: "UNPAUSED"
 
 targets:
   dev:
@@ -64,11 +70,16 @@ targets:
       bronze_max_offsets_per_trigger: "200000"
       seed_reference_data_meter_count: "2000"
       late_arrival_reconciliation_pause_status: "PAUSED"
+      gold_daily_marts_pause_status: "PAUSED"
     resources:
       pipelines:
         bronze_meter_telemetry:
           development: true # dev only: iterate on pipeline updates without a full production restart
         silver_meter_readings:
+          development: true
+        gold_hourly_consumption:
+          development: true
+        gold_daily_marts:
           development: true
 
   staging:

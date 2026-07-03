@@ -1,0 +1,58 @@
+# Lakeflow Declarative Pipeline: Silver -> gold.daily_usage,
+# gold.dma_analytics, gold.customer_analytics, gold.operational_dashboard,
+# gold.executive_dashboard. See src/pipelines/gold/gold_daily_marts.py for
+# the transformations, ADR-0011 for why this is triggered/batch (not
+# continuous like bundles/gold_streaming_pipeline.yml), ADR-0004 for the
+# Liquid Clustering keys, ADR-0007 for why Serverless.
+#
+# Pipeline resources have no native cron schedule of their own (unlike Job
+# resources) — `gold_daily_marts_trigger` below is the Databricks Job that
+# actually schedules a triggered update of this pipeline daily, timed after
+# the Silver late-arrival reconciliation job
+# (bundles/silver_late_arrival_reconciliation_job.yml, 03:00 UTC) so the
+# previous day's readings have had a chance to fully settle in Silver
+# before Gold recomputes its marts from them.
+
+resources:
+  pipelines:
+    gold_daily_marts:
+      name: "smartmeter-${bundle.target}-gold-daily-marts"
+      catalog: ${var.catalog_name}
+      target: gold
+      serverless: true
+      photon: true
+      continuous: false
+      channel: CURRENT
+
+      libraries:
+        - file:
+            path: ../src/pipelines/gold/gold_daily_marts.py
+
+      configuration:
+        smartmeter.catalog_name: ${var.catalog_name}
+        spark.sql.adaptive.enabled: "true"
+
+      notifications:
+        - alerts:
+            - on-update-failure
+            - on-flow-failure
+          email_recipients:
+            - REPLACE-WITH-ONCALL-DISTRIBUTION-LIST@yourcompany.com
+
+  jobs:
+    gold_daily_marts_trigger:
+      name: "smartmeter-${bundle.target}-gold-daily-marts-trigger"
+
+      schedule:
+        quartz_cron_expression: "0 0 5 * * ?"
+        timezone_id: UTC
+        pause_status: ${var.gold_daily_marts_pause_status}
+
+      tasks:
+        - task_key: refresh_gold_daily_marts
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.gold_daily_marts.id}
+
+      email_notifications:
+        on_failure:
+          - REPLACE-WITH-ONCALL-DISTRIBUTION-LIST@yourcompany.com

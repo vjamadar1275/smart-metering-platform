@@ -1,0 +1,32 @@
+# Lakeflow Declarative Pipeline: Silver -> gold.hourly_consumption.
+# See src/pipelines/gold/gold_hourly_consumption.py for the transformation,
+# ADR-0011 for why this one Gold KPI runs continuously while the rest of
+# Gold (bundles/gold_batch_pipeline.yml) is triggered/batch, ADR-0004 for
+# the Liquid Clustering key, ADR-0007 for why Serverless.
+
+resources:
+  pipelines:
+    gold_hourly_consumption:
+      name: "smartmeter-${bundle.target}-gold-hourly-consumption"
+      catalog: ${var.catalog_name}
+      target: gold
+      serverless: true
+      photon: true
+      continuous: true
+      channel: CURRENT
+
+      libraries:
+        - file:
+            path: ../src/pipelines/gold/gold_hourly_consumption.py
+
+      configuration:
+        smartmeter.catalog_name: ${var.catalog_name}
+        smartmeter.gold.hourly_watermark_duration: ${var.gold_hourly_watermark_duration}
+        spark.sql.adaptive.enabled: "true"
+
+      notifications:
+        - alerts:
+            - on-update-failure
+            - on-flow-failure
+          email_recipients:
+            - REPLACE-WITH-ONCALL-DISTRIBUTION-LIST@yourcompany.com

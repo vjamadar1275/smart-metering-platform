@@ -197,6 +197,7 @@ Full rationale lives in [docs/decisions/](../decisions/) as individually numbere
 | [0008](../decisions/ADR-0008-mosaic-ai-rag-strategy.md) | Mosaic AI Vector Search + Model Serving, in-workspace | External vector DB (e.g. Pinecone) + externally hosted models | Keeps embeddings/models inside the Unity Catalog governance boundary; avoids duplicating access control in a second system |
 | [0009](../decisions/ADR-0009-event-hub-connector-protocol.md) | Kafka protocol for Spark consumption, native AMQP for producers | Native AMQP (`azure-eventhubs-spark`) for the consumer too | Kafka connector is Databricks' more mature, actively maintained integration path; AMQP keeps producer-side partition-key control |
 | [0010](../decisions/ADR-0010-silver-dedup-and-late-arrival-strategy.md) | Watermarked streaming dedup (AUTO CDC) + nightly batch reconciliation for late arrivals | `dropDuplicatesWithinWatermark` with no reconciliation (drops late data); unbounded dedup state; pure-batch Silver | Bounds streaming state without violating zero-data-loss; keeps < 5 min Silver latency for the on-time majority |
+| [0011](../decisions/ADR-0011-gold-pipeline-split-and-nrw-proxy.md) | Two Gold pipelines (continuous hourly, triggered daily marts); documented NRW proxy | One mixed-cadence pipeline; omitting NRW entirely; fabricating a synthetic bulk-supply feed | Correct cadence for each KPI's tolerance; NRW proxy demonstrates the calculation shape without manufacturing false confidence |
 
 ## Disaster Recovery Summary
 

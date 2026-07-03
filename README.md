@@ -75,7 +75,7 @@ smart-metering-platform/
 | **2** | Infrastructure: Databricks workspace, Unity Catalog, networking | ✅ Complete |
 | **3** | Streaming ingestion: Event Hubs → Structured Streaming → Bronze | ✅ Complete |
 | **4** | Silver: cleansing, validation, dedup, enrichment, watermarking | ✅ Complete |
-| 5 | Gold: business KPIs, DMA analytics, customer analytics | ⬜ Not started |
+| **5** | Gold: business KPIs, DMA analytics, customer analytics | ✅ Complete |
 | 6 | SQL Warehouses, dashboards, Power BI | ⬜ Not started |
 | 7 | Mosaic AI: leak detection, forecasting, anomaly detection, RAG/agents | ⬜ Not started |
 | 8 | Security hardening, governance, monitoring, CI/CD, production readiness | ⬜ Not started |
