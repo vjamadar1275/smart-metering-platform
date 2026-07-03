@@ -30,3 +30,13 @@ start = datetime.now(timezone.utc)
 for event in simulate_readings(meters, start, start + timedelta(hours=1)):
     ...  # dict matching schemas/avro/meter_telemetry.avsc
 ```
+
+### Reference/dimension data (Silver, Phase 4)
+
+`generate_customer_master(meters)` and `generate_dma_reference()` generate the
+customer and District Meter Area populations that back
+`reference.dim_customer`/`reference.dim_dma` — see
+[src/jobs/seed_reference_data.py](../../src/jobs/seed_reference_data.py),
+which uses this module (plus `generate_meter_master`) to seed
+`reference.dim_meter`/`dim_customer`/`dim_dma` for dev/staging. `Customer`
+and `Dma` are the corresponding dataclasses, matching `Meter`'s shape.

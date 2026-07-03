@@ -34,6 +34,22 @@ variables:
   bronze_max_offsets_per_trigger:
     description: Kafka maxOffsetsPerTrigger for the Bronze streaming read — see src/config/<env>/bronze_pipeline.json.
     default: "2000000"
+  seed_reference_data_meter_count:
+    description: >-
+      Synthetic meter population size for the reference.dim_meter/dim_customer
+      seed job — see src/jobs/seed_reference_data.py and
+      src/config/<env>/seed_reference_data_job.json. Not used in prod (see
+      bundles/seed_reference_data_job.yml).
+    default: "100000"
+  silver_watermark_duration:
+    description: Structured Streaming watermark on reading_timestamp for Silver's late-arrival handling — see docs/architecture/ARCHITECTURE.md#3-bronze--silver.
+    default: "24 hours"
+  late_arrival_reconciliation_lookback_days:
+    description: How many days of Bronze history the nightly late-arrival reconciliation job re-scans for rows missing from Silver — see src/jobs/silver_late_arrival_reconciliation.py.
+    default: "7"
+  late_arrival_reconciliation_pause_status:
+    description: UNPAUSED/PAUSED for the nightly reconciliation job's schedule — paused by default in dev, where there's no continuous production data flow to reconcile.
+    default: "UNPAUSED"
 
 targets:
   dev:
@@ -46,10 +62,14 @@ targets:
       event_hub_namespace: REPLACE-WITH-DEV-EVENT-HUB-NAMESPACE # from: terraform output (module.event_hub.namespace_name)
       secret_scope: smartmeter-dev-secrets
       bronze_max_offsets_per_trigger: "200000"
+      seed_reference_data_meter_count: "2000"
+      late_arrival_reconciliation_pause_status: "PAUSED"
     resources:
       pipelines:
         bronze_meter_telemetry:
           development: true # dev only: iterate on pipeline updates without a full production restart
+        silver_meter_readings:
+          development: true
 
   staging:
     mode: production
@@ -59,6 +79,7 @@ targets:
       catalog_name: smartmeter_staging
       event_hub_namespace: REPLACE-WITH-STAGING-EVENT-HUB-NAMESPACE
       secret_scope: smartmeter-staging-secrets
+      seed_reference_data_meter_count: "100000"
     run_as:
       service_principal_name: REPLACE-WITH-CICD-SERVICE-PRINCIPAL # module.managed_identity["cicd-deploy"], staging
 

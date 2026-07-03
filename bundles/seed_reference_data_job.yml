@@ -1,0 +1,42 @@
+# Databricks Job: one-off/idempotent seed of the reference dimension tables
+# (reference.dim_meter, reference.dim_customer, reference.dim_dma) that
+# Silver's enrichment join depends on. See src/jobs/seed_reference_data.py
+# for the transformation, ADR-0003's consequence for why this is a plain
+# Job task rather than a Lakeflow pipeline (one-off seeding, not a
+# continuous/incremental transformation).
+#
+# dev/staging only — intentionally NOT wired into the prod target. Prod's
+# reference dimensions must be populated from the utility's real CRM/GIS
+# source systems (an actual data integration, out of scope for this
+# repository), never from this synthetic generator. Running this job against
+# prod would seed real production tables with fake meters/customers.
+# Wiring a *real* source-system feed for prod reference data is an open
+# item for a future phase once that integration exists.
+#
+# Not scheduled (no `schedule:` block) — triggered manually or from a
+# low-frequency ad hoc run, per src/jobs/seed_reference_data.py's docstring.
+
+resources:
+  jobs:
+    seed_reference_data:
+      name: "smartmeter-${bundle.target}-seed-reference-data"
+
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
+
+      tasks:
+        - task_key: seed
+          environment_key: default
+          spark_python_task:
+            python_file: ../src/jobs/seed_reference_data.py
+            parameters:
+              - "--catalog"
+              - "${var.catalog_name}"
+              - "--meters"
+              - "${var.seed_reference_data_meter_count}"
+
+      email_notifications:
+        on_failure:
+          - REPLACE-WITH-ONCALL-DISTRIBUTION-LIST@yourcompany.com

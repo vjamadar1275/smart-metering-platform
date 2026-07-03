@@ -13,7 +13,10 @@ import fastavro
 import pytest
 
 from tools.mock_data_generator.generator import (
+    DMA_IDS,
     MeterState,
+    generate_customer_master,
+    generate_dma_reference,
     generate_meter_master,
     generate_reading,
     simulate_readings,
@@ -123,3 +126,59 @@ def test_dropout_can_skip_an_interval():
         r is None for r in results
     ), "expected at least one dropped interval across 500 draws at 2% probability"
     assert any(r is not None for r in results)
+
+
+def test_generate_customer_master_produces_one_row_per_unique_customer_id():
+    meters = generate_meter_master(500, seed=9)
+    customers = generate_customer_master(meters, seed=9)
+    assert {c.customer_id for c in customers} == {m.customer_id for m in meters}
+    assert len(customers) == len({c.customer_id for c in customers})
+
+
+def test_generate_customer_master_account_type_matches_a_held_meter_type():
+    meters = generate_meter_master(200, seed=10)
+    customers = generate_customer_master(meters, seed=10)
+    meter_types_by_customer = {}
+    for m in meters:
+        meter_types_by_customer.setdefault(m.customer_id, set()).add(m.meter_type)
+    for customer in customers:
+        assert customer.account_type in meter_types_by_customer[customer.customer_id]
+
+
+def test_generate_customer_master_is_deterministic_for_a_given_seed():
+    meters = generate_meter_master(100, seed=11)
+    a = generate_customer_master(meters, seed=11)
+    b = generate_customer_master(meters, seed=11)
+    assert [(c.customer_id, c.account_name) for c in a] == [
+        (c.customer_id, c.account_name) for c in b
+    ]
+
+
+def test_generate_customer_master_connection_date_not_before_earliest_meter_install():
+    meters = generate_meter_master(50, seed=12)
+    customers = generate_customer_master(meters, seed=12)
+    earliest_install = {}
+    for m in meters:
+        earliest_install[m.customer_id] = min(
+            earliest_install.get(m.customer_id, m.install_date), m.install_date
+        )
+    for customer in customers:
+        assert customer.connection_date >= earliest_install[customer.customer_id]
+
+
+def test_generate_dma_reference_covers_every_dma_id_exactly_once():
+    dmas = generate_dma_reference(seed=13)
+    assert [d.dma_id for d in dmas] == DMA_IDS
+
+
+def test_generate_dma_reference_target_nrw_pct_in_plausible_range():
+    dmas = generate_dma_reference(seed=14)
+    for dma in dmas:
+        assert 0.0 < dma.target_nrw_pct < 100.0
+        assert dma.population_served > 0
+
+
+def test_generate_dma_reference_is_deterministic_for_a_given_seed():
+    a = generate_dma_reference(seed=15)
+    b = generate_dma_reference(seed=15)
+    assert a == b

@@ -14,7 +14,7 @@
 - **Formatting**: [Black](https://github.com/psf/black), line length 100. **Linting**: `ruff`. Both run in pre-commit and CI.
 - **Type hints** on all function signatures in `src/libs/` (shared library code); optional but encouraged in pipeline/notebook code.
 - **No bare `except:`** — catch specific exceptions; let unexpected exceptions propagate rather than silently swallowing them (this platform has zero-data-loss as a requirement — a silently swallowed exception in a streaming job is a data-loss bug).
-- **Structured logging** via `src/libs/monitoring/` (added Phase 3) — no bare `print()` in pipeline code; log records must be queryable (JSON, with `pipeline`, `layer`, `run_id` fields) since this is how Lakehouse Monitoring and on-call diagnosis will consume them.
+- **Structured logging** via `src/libs/monitoring/` (added Phase 4) — no bare `print()` in pipeline code; log records must be queryable (JSON, with `pipeline`, `layer`, `run_id` fields) since this is how Lakehouse Monitoring and on-call diagnosis will consume them.
 - **No hardcoded environment values** (workspace URLs, catalog names, storage paths) — sourced from `src/config/<env>/` at runtime, never string-literal in pipeline code, so the same code path runs unmodified in dev/staging/prod.
 
 ### SQL

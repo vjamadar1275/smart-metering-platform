@@ -19,6 +19,47 @@ METER_TYPES = ["RESIDENTIAL", "COMMERCIAL", "INDUSTRIAL"]
 FIRMWARE_VERSIONS = ["2.4.1", "2.4.2", "2.5.0", "2.5.1"]
 READING_INTERVAL_MINUTES = 15
 
+# Zones/regions/supply sources for the DMA reference table (Silver Phase 4
+# enrichment join target — see reference.dim_dma). Purely representative;
+# a real deployment would source these from the utility's GIS/asset system.
+_DMA_ZONES = ["North", "South", "East", "West", "Central"]
+_DMA_SUPPLY_SOURCES = ["SURFACE_WATER", "GROUNDWATER", "BLENDED"]
+_CUSTOMER_NAME_FIRST = [
+    "James",
+    "Maria",
+    "Wei",
+    "Fatima",
+    "Liam",
+    "Olga",
+    "Carlos",
+    "Priya",
+    "Noah",
+    "Aisha",
+]
+_CUSTOMER_NAME_LAST = [
+    "Smith",
+    "Garcia",
+    "Chen",
+    "Khan",
+    "Mueller",
+    "Ivanova",
+    "Rossi",
+    "Patel",
+    "Johnson",
+    "Nguyen",
+]
+_COMMERCIAL_NAME_SUFFIXES = ["LLC", "Inc.", "Holdings", "Group", "Partners"]
+_STREET_NAMES = [
+    "Main St",
+    "Oak Ave",
+    "River Rd",
+    "Elm St",
+    "Highland Dr",
+    "Sunset Blvd",
+    "Industrial Pkwy",
+    "Commerce Way",
+]
+
 # Baseline hourly consumption weights (residential diurnal curve): low
 # overnight, morning peak ~7am, evening peak ~7pm. Index = hour of day.
 _DIURNAL_WEIGHTS = [
@@ -62,6 +103,26 @@ class Meter:
     meter_size_mm: int
 
 
+@dataclass(frozen=True)
+class Customer:
+    customer_id: str
+    account_name: str
+    account_type: str
+    service_address: str
+    connection_date: date
+    billing_cycle_day: int
+
+
+@dataclass(frozen=True)
+class Dma:
+    dma_id: str
+    dma_name: str
+    zone: str
+    supply_source: str
+    population_served: int
+    target_nrw_pct: float
+
+
 @dataclass
 class MeterState:
     """Mutable per-meter simulation state: the cumulative totalizer reading
@@ -96,6 +157,71 @@ def generate_meter_master(count: int, seed: int = 42) -> list[Meter]:
             )
         )
     return meters
+
+
+def generate_customer_master(meters: list[Meter], seed: int = 42) -> list[Customer]:
+    """Derives one customer record per unique `customer_id` referenced by
+    `meters`, for seeding `reference.dim_customer` (Silver Phase 4 enrichment
+    join). A customer's `account_type` matches the meter type of the meters
+    they hold — a real utility's CRM would be the source of truth here, this
+    stands in for it with representative data.
+    """
+    rng = random.Random(seed ^ 0x5A5A5A5A)
+    account_type_by_customer: dict[str, str] = {}
+    earliest_install_by_customer: dict[str, date] = {}
+    for meter in meters:
+        account_type_by_customer.setdefault(meter.customer_id, meter.meter_type)
+        earliest_install_by_customer[meter.customer_id] = min(
+            earliest_install_by_customer.get(meter.customer_id, meter.install_date),
+            meter.install_date,
+        )
+
+    customers = []
+    for customer_id in sorted(account_type_by_customer):
+        account_type = account_type_by_customer[customer_id]
+        if account_type == "RESIDENTIAL":
+            account_name = f"{rng.choice(_CUSTOMER_NAME_FIRST)} {rng.choice(_CUSTOMER_NAME_LAST)}"
+        else:
+            account_name = (
+                f"{rng.choice(_CUSTOMER_NAME_LAST)} {rng.choice(_COMMERCIAL_NAME_SUFFIXES)}"
+            )
+        customers.append(
+            Customer(
+                customer_id=customer_id,
+                account_name=account_name,
+                account_type=account_type,
+                service_address=(f"{rng.randint(100, 9999)} {rng.choice(_STREET_NAMES)}"),
+                # A customer connects on or after their earliest meter's install date.
+                connection_date=earliest_install_by_customer[customer_id]
+                + timedelta(days=rng.randint(0, 14)),
+                billing_cycle_day=rng.randint(1, 28),
+            )
+        )
+    return customers
+
+
+def generate_dma_reference(seed: int = 42) -> list[Dma]:
+    """Generates one representative record per District Meter Area in
+    `DMA_IDS`, for seeding `reference.dim_dma` (used by both Silver
+    enrichment and Gold's `dma_analytics` non-revenue-water calculation).
+    """
+    rng = random.Random(seed ^ 0x0DEC0DE)
+    dmas = []
+    for i, dma_id in enumerate(DMA_IDS):
+        dmas.append(
+            Dma(
+                dma_id=dma_id,
+                dma_name=f"{_DMA_ZONES[i % len(_DMA_ZONES)]} Zone {i + 1:02d}",
+                zone=_DMA_ZONES[i % len(_DMA_ZONES)],
+                supply_source=rng.choice(_DMA_SUPPLY_SOURCES),
+                population_served=rng.randint(5_000, 80_000),
+                # Industry-typical non-revenue-water target range; a real
+                # deployment would source this per-DMA from the utility's
+                # water-balance audits, not synthesize it.
+                target_nrw_pct=round(rng.uniform(8.0, 18.0), 1),
+            )
+        )
+    return dmas
 
 
 def _base_flow_liters(meter: Meter, ts: datetime, rng: random.Random) -> float:

@@ -1,0 +1,32 @@
+# Lakeflow Declarative Pipeline: Bronze meter telemetry -> Silver cleansed,
+# deduplicated, enriched meter readings (+ quarantine side-table).
+# See src/pipelines/silver/silver_meter_readings.py for the transformation,
+# ADR-0003 for why Lakeflow, ADR-0004 for the Liquid Clustering key,
+# ADR-0007 for why Serverless.
+
+resources:
+  pipelines:
+    silver_meter_readings:
+      name: "smartmeter-${bundle.target}-silver-meter-readings"
+      catalog: ${var.catalog_name}
+      target: silver
+      serverless: true
+      photon: true
+      continuous: true
+      channel: CURRENT
+
+      libraries:
+        - file:
+            path: ../src/pipelines/silver/silver_meter_readings.py
+
+      configuration:
+        smartmeter.catalog_name: ${var.catalog_name}
+        smartmeter.silver.watermark_duration: ${var.silver_watermark_duration}
+        spark.sql.adaptive.enabled: "true"
+
+      notifications:
+        - alerts:
+            - on-update-failure
+            - on-flow-failure
+          email_recipients:
+            - REPLACE-WITH-ONCALL-DISTRIBUTION-LIST@yourcompany.com

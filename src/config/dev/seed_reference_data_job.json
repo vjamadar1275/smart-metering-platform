@@ -1,0 +1,9 @@
+{
+  "_comment": "Canonical per-environment config for the reference-data seed job. Mirrored into bundles/seed_reference_data_job.yml's target.dev.variables by convention — see src/config/dev/bronze_pipeline.json for the full explanation.",
+  "environment": "dev",
+  "catalog_name": "smartmeter_dev",
+  "seed_reference_data": {
+    "meter_count": 2000,
+    "note": "Small representative population for dev functional testing, matching the scale bronze_pipeline.json's dev max_offsets_per_trigger is sized for."
+  }
+}

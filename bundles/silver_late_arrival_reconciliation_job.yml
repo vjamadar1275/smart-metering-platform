@@ -1,0 +1,43 @@
+# Databricks Job: nightly batch reconciliation of meter readings that
+# arrived after Silver's streaming watermark closed. See
+# src/jobs/silver_late_arrival_reconciliation.py for the transformation and
+# docs/architecture/ARCHITECTURE.md#3-bronze--silver ("Watermarking & late
+# arrival") for the design.
+#
+# Scheduled (unlike bundles/seed_reference_data_job.yml, which is manual) —
+# this is an ongoing operational job, not a one-off seed. 03:00 UTC is
+# chosen as a low-traffic window across all served time zones, minimizing
+# (not eliminating — see the job's inline comment) concurrent-write
+# contention with the continuous streaming Silver pipeline.
+
+resources:
+  jobs:
+    silver_late_arrival_reconciliation:
+      name: "smartmeter-${bundle.target}-silver-late-arrival-reconciliation"
+
+      schedule:
+        quartz_cron_expression: "0 0 3 * * ?"
+        timezone_id: UTC
+        pause_status: ${var.late_arrival_reconciliation_pause_status}
+
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
+
+      tasks:
+        - task_key: reconcile
+          environment_key: default
+          spark_python_task:
+            python_file: ../src/jobs/silver_late_arrival_reconciliation.py
+            parameters:
+              - "--catalog"
+              - "${var.catalog_name}"
+              - "--lookback-days"
+              - "${var.late_arrival_reconciliation_lookback_days}"
+              - "--run-id"
+              - "{{job.run_id}}"
+
+      email_notifications:
+        on_failure:
+          - REPLACE-WITH-ONCALL-DISTRIBUTION-LIST@yourcompany.com

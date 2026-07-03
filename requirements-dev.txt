@@ -1,0 +1,16 @@
+# Local development / test dependencies — not deployed to Databricks
+# (Lakeflow pipeline compute already provides pyspark, and the standard
+# Databricks Runtime image; this file exists purely so `pytest` can run
+# against src/libs/ and src/pipelines/ locally and in CI).
+pyspark==3.5.3
+delta-spark==3.2.1
+fastavro>=1.9,<2
+pytest>=8,<9
+ruff>=0.6,<1
+black>=24,<25
+pyyaml>=6,<7
+
+# Only needed for tests/integration/ (skipped unless DATABRICKS_HOST/
+# DATABRICKS_TOKEN are set — see tests/integration/test_silver_pipeline_integration.py).
+databricks-sdk>=0.30,<1
+databricks-sql-connector>=3,<5

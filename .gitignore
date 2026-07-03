@@ -53,3 +53,9 @@ dist/
 build/
 *.whl
 node_modules/
+
+# Local Spark/Delta test scratch (tests/conftest.py's `spark` fixture uses
+# the default local-filesystem warehouse/metastore)
+spark-warehouse/
+metastore_db/
+derby.log

@@ -1,0 +1,9 @@
+{
+  "_comment": "Canonical per-environment config for the reference-data seed job. Mirrored into bundles/seed_reference_data_job.yml's target.staging.variables by convention — see src/config/dev/bronze_pipeline.json for the full explanation.",
+  "environment": "staging",
+  "catalog_name": "smartmeter_staging",
+  "seed_reference_data": {
+    "meter_count": 100000,
+    "note": "Larger than dev for realistic join/skew testing, but deliberately well below the 10M-meter fleet size: generate_meter_master() builds its population as a single in-memory Python list on the driver (see tools/mock_data_generator/generator.py), which does not scale to fleet-size counts. Seeding a literal 10M-row synthetic population would need a distributed generator (e.g. a Spark range() + UDF/pandas-UDF rewrite) — tracked as a Phase 8 open item, not needed for validating Silver's join/enrichment/quarantine logic at this scale."
+  }
+}
