@@ -13,5 +13,6 @@ Each ADR documents one significant, hard-to-reverse decision: the alternatives c
 | [0007](ADR-0007-compute-strategy.md) | Serverless-First Compute, Job Clusters for Scheduled ETL |
 | [0008](ADR-0008-mosaic-ai-rag-strategy.md) | In-Workspace Mosaic AI (Vector Search + Model Serving) for AI/RAG Use Cases |
 | [0009](ADR-0009-event-hub-connector-protocol.md) | Kafka Protocol for Spark Consumption, Native AMQP for Producers |
+| [0010](ADR-0010-silver-quarantine-and-late-arrival-reconciliation.md) | Reason-Coded Quarantine (Not Drop) + Batch Late-Arrival Reconciliation Outside Lakeflow |
 
 New ADRs are added as later phases (streaming design, ML model choices, CI/CD gating strategy, etc.) reach decisions worth recording.
