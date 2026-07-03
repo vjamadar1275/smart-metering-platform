@@ -65,6 +65,12 @@ variable "enable_firewall" {
   default     = true
 }
 
+variable "event_hub_partition_count" {
+  description = "Partition count for the meter-telemetry Event Hub. Matches ADR-0001's over-provisioned default (200) since staging is meant to validate performance at close to production scale."
+  type        = number
+  default     = 200
+}
+
 variable "dev_state" {
   description = "Backend coordinates for the dev environment's Terraform state, read via terraform_remote_state to attach staging to the same shared Unity Catalog metastore dev owns, per ADR-0006."
   type = object({

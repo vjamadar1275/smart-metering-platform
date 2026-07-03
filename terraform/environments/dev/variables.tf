@@ -71,6 +71,12 @@ variable "enable_firewall" {
   default     = false
 }
 
+variable "event_hub_partition_count" {
+  description = "Partition count for the meter-telemetry Event Hub. Dev uses fewer partitions than staging/prod since it represents a small functional-testing device subset, not the full fleet ADR-0001 sized 200+ partitions for."
+  type        = number
+  default     = 32
+}
+
 variable "meter_device_count_target" {
   description = "Design-target device count this environment's sizing should accommodate (informational; drives module sizing inputs added in Phase 2)."
   type        = number

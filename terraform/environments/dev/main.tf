@@ -104,6 +104,23 @@ module "storage" {
   tags = local.standard_tags
 }
 
+module "event_hub" {
+  source = "../../modules/event-hub"
+
+  environment                = var.environment
+  region                     = var.primary_region
+  resource_group_name        = azurerm_resource_group.data.name
+  sku                        = "Standard"
+  use_dedicated_cluster      = false # dev: functional-testing subset, not full ADR-0001 throughput scale
+  capacity_units             = 2
+  partition_count            = var.event_hub_partition_count
+  message_retention_days     = 7
+  private_endpoint_subnet_id = module.networking.subnet_ids["private_endpoints"]
+  private_dns_zone_id        = module.networking.private_dns_zone_ids["privatelink.servicebus.windows.net"]
+  key_vault_id               = module.key_vault.key_vault_id
+  tags                       = local.standard_tags
+}
+
 module "databricks_workspace" {
   source = "../../modules/databricks-workspace"
 
@@ -119,6 +136,35 @@ module "databricks_workspace" {
   no_public_ip                      = true
   managed_resource_group_name       = "rg-${local.name_prefix}-databricks-managed"
   tags                              = local.standard_tags
+}
+
+# The well-known, first-party "AzureDatabricks" Enterprise Application that
+# every Azure AD tenant has once Databricks is used against it — this is the
+# identity a Key Vault-backed Databricks secret scope authenticates as, and
+# it needs Key Vault read access independent of any workload's own managed
+# identity (see terraform/modules/unity-catalog for the *workload* access
+# pattern, which is separate).
+data "azuread_service_principal" "azure_databricks" {
+  client_id = "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d"
+}
+
+resource "azurerm_role_assignment" "databricks_keyvault_secrets" {
+  scope                = module.key_vault.key_vault_id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = data.azuread_service_principal.azure_databricks.object_id
+}
+
+resource "databricks_secret_scope" "smartmeter" {
+  provider = databricks.workspace
+
+  name = "smartmeter-${var.environment}-secrets"
+
+  keyvault_metadata {
+    resource_id = module.key_vault.key_vault_id
+    dns_name    = module.key_vault.vault_uri
+  }
+
+  depends_on = [azurerm_role_assignment.databricks_keyvault_secrets]
 }
 
 locals {

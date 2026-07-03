@@ -42,6 +42,8 @@ Sizing, partitioning, and cost calculations throughout `docs/architecture/` are 
 
 ```
 smart-metering-platform/
+├── databricks.yml              Databricks Asset Bundle root config (dev/staging/prod targets)
+├── schemas/avro/                Avro schema contracts (source of truth for Event Hubs payloads)
 ├── docs/                      Architecture, decisions (ADRs), guides, runbooks
 │   ├── architecture/          High/low-level architecture + diagrams
 │   ├── decisions/             Architecture Decision Records (ADR-NNNN)
@@ -71,7 +73,7 @@ smart-metering-platform/
 |---|---|---|
 | **1** | Repository structure, architecture, foundational Terraform, core docs | ✅ Complete |
 | **2** | Infrastructure: Databricks workspace, Unity Catalog, networking | ✅ Complete |
-| 3 | Streaming ingestion: Event Hubs → Structured Streaming → Bronze | ⬜ Not started |
+| **3** | Streaming ingestion: Event Hubs → Structured Streaming → Bronze | ✅ Complete |
 | 4 | Silver: cleansing, validation, dedup, enrichment, watermarking | ⬜ Not started |
 | 5 | Gold: business KPIs, DMA analytics, customer analytics | ⬜ Not started |
 | 6 | SQL Warehouses, dashboards, Power BI | ⬜ Not started |

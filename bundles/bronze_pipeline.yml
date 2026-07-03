@@ -1,0 +1,36 @@
+# Lakeflow Declarative Pipeline: Bronze meter telemetry ingestion.
+# See src/pipelines/bronze/bronze_meter_telemetry.py for the transformation,
+# ADR-0003 for why Lakeflow (not a hand-rolled Structured Streaming job),
+# ADR-0007 for why Serverless (not a classic all-purpose/job cluster).
+
+resources:
+  pipelines:
+    bronze_meter_telemetry:
+      name: "smartmeter-${bundle.target}-bronze-meter-telemetry"
+      catalog: ${var.catalog_name}
+      target: bronze
+      serverless: true
+      photon: true
+      continuous: true
+      channel: CURRENT
+
+      libraries:
+        - file:
+            path: ../src/pipelines/bronze/bronze_meter_telemetry.py
+
+      configuration:
+        smartmeter.event_hub.namespace: ${var.event_hub_namespace}
+        smartmeter.event_hub.name: ${var.event_hub_name}
+        smartmeter.event_hub.consumer_group: ${var.event_hub_consumer_group}
+        smartmeter.secrets.scope: ${var.secret_scope}
+        smartmeter.bronze.max_offsets_per_trigger: ${var.bronze_max_offsets_per_trigger}
+        # AQE is on by default in current Databricks Runtime; set explicitly
+        # so it's a documented, reviewable choice rather than an implicit one.
+        spark.sql.adaptive.enabled: "true"
+
+      notifications:
+        - alerts:
+            - on-update-failure
+            - on-flow-failure
+          email_recipients:
+            - REPLACE-WITH-ONCALL-DISTRIBUTION-LIST@yourcompany.com

@@ -1,0 +1,74 @@
+# Databricks Asset Bundle — root configuration.
+#
+# `databricks bundle validate` / `deploy` / `run` operate from this file.
+# Resource definitions live under bundles/*.yml (included below) so this
+# file stays a stable index as more pipelines/jobs are added in later
+# phases, rather than growing into one large file.
+#
+# Workspace hosts and the *_state_output variables below are filled in
+# after Phase 2/3 Terraform apply (`terraform output databricks_workspace_url`,
+# `terraform output` for the event-hub/key-vault values) — see
+# docs/guides/DEPLOYMENT_GUIDE.md. They are not placeholders left unfinished;
+# they are genuinely only knowable once real infrastructure exists, which
+# this repository's local scaffolding does not yet have (see terraform/README.md).
+
+bundle:
+  name: smart-metering-platform
+
+include:
+  - bundles/*.yml
+
+variables:
+  catalog_name:
+    description: Unity Catalog catalog name for the target environment.
+  event_hub_namespace:
+    description: Event Hubs namespace name (without the .servicebus.windows.net suffix).
+  event_hub_name:
+    description: Event Hub name (Kafka topic) carrying meter telemetry.
+    default: evh-meter-telemetry
+  event_hub_consumer_group:
+    description: Consumer group Bronze reads with.
+    default: bronze-streaming
+  secret_scope:
+    description: Databricks secret scope (Key Vault-backed) holding the Event Hubs connection string.
+  bronze_max_offsets_per_trigger:
+    description: Kafka maxOffsetsPerTrigger for the Bronze streaming read — see src/config/<env>/bronze_pipeline.json.
+    default: "2000000"
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://REPLACE-WITH-DEV-WORKSPACE-URL # from: terraform output -raw databricks_workspace_url (terraform/environments/dev)
+    variables:
+      catalog_name: smartmeter_dev
+      event_hub_namespace: REPLACE-WITH-DEV-EVENT-HUB-NAMESPACE # from: terraform output (module.event_hub.namespace_name)
+      secret_scope: smartmeter-dev-secrets
+      bronze_max_offsets_per_trigger: "200000"
+    resources:
+      pipelines:
+        bronze_meter_telemetry:
+          development: true # dev only: iterate on pipeline updates without a full production restart
+
+  staging:
+    mode: production
+    workspace:
+      host: https://REPLACE-WITH-STAGING-WORKSPACE-URL
+    variables:
+      catalog_name: smartmeter_staging
+      event_hub_namespace: REPLACE-WITH-STAGING-EVENT-HUB-NAMESPACE
+      secret_scope: smartmeter-staging-secrets
+    run_as:
+      service_principal_name: REPLACE-WITH-CICD-SERVICE-PRINCIPAL # module.managed_identity["cicd-deploy"], staging
+
+  prod:
+    mode: production
+    workspace:
+      host: https://REPLACE-WITH-PROD-WORKSPACE-URL
+    variables:
+      catalog_name: smartmeter_prod
+      event_hub_namespace: REPLACE-WITH-PROD-EVENT-HUB-NAMESPACE
+      secret_scope: smartmeter-prod-secrets
+    run_as:
+      service_principal_name: REPLACE-WITH-CICD-SERVICE-PRINCIPAL # module.managed_identity["cicd-deploy"], prod

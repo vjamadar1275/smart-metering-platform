@@ -5,7 +5,7 @@ Operational and developer documentation, added as the phases they document are i
 | Guide | Added in | Covers |
 |---|---|---|
 | Developer Guide | Phase 3–5 | Local setup, coding standards, testing conventions, PR workflow |
-| Deployment Guide | Phase 2 | Terraform bootstrap, environment promotion, Databricks Asset Bundle deployment |
+| [Deployment Guide](DEPLOYMENT_GUIDE.md) | ✅ Phase 3 | Terraform state bootstrap, infra apply order, Databricks Asset Bundle deployment, test-traffic generation, rollback |
 | Operations Guide | Phase 8 | Day-2 operations: pipeline restarts, backfills, scaling, on-call |
 | Security Guide | Phase 8 | Key rotation, access reviews, incident response, compliance evidence |
 | Performance Guide | Phase 8 | Benchmarks, sizing methodology, tuning playbooks |

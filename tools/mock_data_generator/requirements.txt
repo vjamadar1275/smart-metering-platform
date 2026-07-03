@@ -1,0 +1,4 @@
+# Pure standard-library generator logic — no runtime dependency.
+# fastavro is only needed for the optional schema-conformance check in
+# tests/unit/test_mock_data_generator.py.
+fastavro>=1.9,<2

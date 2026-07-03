@@ -1,0 +1,20 @@
+{
+  "_comment": "Canonical per-environment config for the Bronze streaming pipeline. Mirrored into bundles/bronze_pipeline.yml's target.staging.variables by convention — see src/config/dev/bronze_pipeline.json for the full explanation.",
+  "environment": "staging",
+  "catalog_name": "smartmeter_staging",
+  "event_hub": {
+    "namespace": "<from-terraform-output:module.event_hub.namespace_name>",
+    "name": "<from-terraform-output:module.event_hub.event_hub_name>",
+    "consumer_group": "bronze-streaming",
+    "partition_count": 200
+  },
+  "secrets": {
+    "scope": "smartmeter-staging-secrets",
+    "connection_string_key": "eventhub-connection-string",
+    "key_vault_id": "<from-terraform-output:module.key_vault.key_vault_id>"
+  },
+  "bronze": {
+    "max_offsets_per_trigger": 2000000,
+    "note": "Matches the 10M-meter capacity plan in docs/architecture/ARCHITECTURE.md#capacity-planning — staging validates at production-representative scale."
+  }
+}

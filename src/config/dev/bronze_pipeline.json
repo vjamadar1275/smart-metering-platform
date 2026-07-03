@@ -1,0 +1,20 @@
+{
+  "_comment": "Canonical per-environment config for the Bronze streaming pipeline. Mirrored into bundles/bronze_pipeline.yml's target.dev.variables by convention (Databricks Asset Bundles has no built-in loader for arbitrary JSON var files) — this file is the source of truth a human or CI step reads when populating those variables, and the same values the mock data generator / event-hub simulator READMEs reference for local testing against dev. Values marked <from-terraform-output> are filled in from `terraform output` after Phase 2/3 apply, not invented here.",
+  "environment": "dev",
+  "catalog_name": "smartmeter_dev",
+  "event_hub": {
+    "namespace": "<from-terraform-output:module.event_hub.namespace_name>",
+    "name": "<from-terraform-output:module.event_hub.event_hub_name>",
+    "consumer_group": "bronze-streaming",
+    "partition_count": 32
+  },
+  "secrets": {
+    "scope": "smartmeter-dev-secrets",
+    "connection_string_key": "eventhub-connection-string",
+    "key_vault_id": "<from-terraform-output:module.key_vault.key_vault_id>"
+  },
+  "bronze": {
+    "max_offsets_per_trigger": 200000,
+    "note": "Lower than staging/prod: dev represents a small functional-testing device subset, not full fleet throughput."
+  }
+}
