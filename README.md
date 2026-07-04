@@ -1,5 +1,7 @@
 # Enterprise Smart Metering Data Platform
 
+> **ALL PHASES COMPLETE.** All 8 delivery phases below are implemented, tested, and documented. Nothing has been applied to live Azure/Databricks infrastructure from this repository (see [terraform/README.md](terraform/README.md) and [docs/guides/DEPLOYMENT_GUIDE.md](docs/guides/DEPLOYMENT_GUIDE.md)) — that first real deployment, and the operational follow-through it requires (a DR drill, real-workload SQL Warehouse sizing, enabling Event Hubs Geo-DR, etc. — see each guide's "known open items"), is the deliberate next step for a human operator, not further autonomous work on this repository.
+
 A production-grade Lakehouse platform on **Azure Databricks** for a water utility operating **10 million smart meters** (designed to scale to **100 million**), each reporting telemetry every 15 minutes. The platform delivers continuous streaming ingestion, near-real-time and historical analytics, AI-powered insights (leak detection, demand forecasting, anomaly detection), and enterprise governance — at billions-of-records scale, with zero data loss and cost efficiency as first-class requirements.
 
 This repository is built and delivered **incrementally by phase**. Each phase is fully implemented, tested, and documented before the next begins. See [Delivery Phases](#delivery-phases) for status.
@@ -78,11 +80,11 @@ smart-metering-platform/
 | **5** | Gold: business KPIs, DMA analytics, customer analytics | ✅ Complete |
 | **6** | SQL Warehouses, dashboards, Power BI | ✅ Complete |
 | **7** | Mosaic AI: leak detection, forecasting, anomaly detection, RAG/agents | ✅ Complete |
-| 8 | Security hardening, governance, monitoring, CI/CD, production readiness | ⬜ Not started |
+| **8** | Security hardening, governance, monitoring, CI/CD, production readiness | ✅ Complete |
 
 ## Getting Started
 
-As of Phase 6, `terraform/` defines real infrastructure (networking, Key Vault, managed identities, ADLS Gen2, the Databricks workspace, Unity Catalog, Event Hub, and workload-isolated SQL Warehouses) for dev/staging/prod — but nothing has been applied to live Azure yet from this repo. Full Monitoring remains interface-only until Phase 8.
+As of Phase 8, `terraform/` defines real infrastructure (networking, Key Vault, managed identities, ADLS Gen2, the Databricks workspace, Unity Catalog, Event Hub, workload-isolated SQL Warehouses, and Log Analytics/monitoring) for dev/staging/prod — but nothing has been applied to live Azure yet from this repo (see the note at the top of this file).
 
 ```bash
 # Review the architecture first
@@ -109,8 +111,9 @@ pytest tests/unit
 ## Documentation
 
 - [Architecture Guide](docs/architecture/ARCHITECTURE.md) — high/low-level design, diagrams, capacity planning, trade-offs
-- [Architecture Decision Records](docs/decisions/) — why each major choice was made, and the alternatives rejected
-- Developer / Operations / Security / Performance guides — added as the phases that they document are implemented
+- [Architecture Decision Records](docs/decisions/) — why each major choice was made, and the alternatives rejected (ADR-0001 through ADR-0012)
+- [Guides](docs/guides/) — Developer, Deployment, Operations, Security, Performance, Troubleshooting, API Documentation
+- [Runbooks](docs/runbooks/) — incident response, DR failover
 
 ## License / Ownership
 

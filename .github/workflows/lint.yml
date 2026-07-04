@@ -25,9 +25,12 @@ jobs:
       - name: black --check
         run: black --check src tests tools
 
-  terraform-fmt:
-    name: Terraform fmt (environments + modules)
+  terraform-fmt-and-validate:
+    name: Terraform fmt + validate (dev / staging / prod)
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [dev, staging, prod]
     steps:
       - uses: actions/checkout@v4
 
@@ -38,5 +41,22 @@ jobs:
       - name: terraform fmt -check
         # -recursive from terraform/ (not per-environment) so it also
         # covers terraform/modules/ — running it per-environment-directory
-        # would miss the shared modules entirely.
+        # would miss the shared modules entirely. Runs once, not per
+        # matrix entry — harmless to repeat but adds nothing on repeats.
+        if: matrix.environment == 'dev'
         run: terraform fmt -check -recursive terraform/
+
+      # `-backend=false` — no state backend credentials needed, so this
+      # runs on every PR unconditionally (unlike terraform-plan.yml, which
+      # needs real Azure credentials and is gated on those existing).
+      # `validate` still requires downloading real provider plugins from
+      # registry.terraform.io, which GitHub-hosted runners can reach even
+      # though this repository's own sandboxed development environment
+      # could not (see prior commits' network-egress notes) — so this is
+      # the first time `validate` (not just `fmt`) runs against this
+      # Terraform for real.
+      - name: terraform init (no backend) && validate
+        working-directory: terraform/environments/${{ matrix.environment }}
+        run: |
+          terraform init -backend=false
+          terraform validate

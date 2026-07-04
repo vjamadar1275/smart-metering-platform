@@ -2,10 +2,10 @@
 
 ## Branching & PR Workflow
 
-- `master` is always deployable to dev via CI/CD; direct pushes are disabled once Phase 8 branch protection is configured.
+- `main` is always deployable to dev via CI/CD (`.github/workflows/bundle-deploy.yml`, Phase 8) — direct pushes should be disabled via GitHub branch protection (repo Settings → Branches), a GitHub-side setting this repository's code cannot itself configure; an admin should enable it requiring `lint`/`test` status checks before merge.
 - Feature branches: `feature/<phase>-<short-description>` (e.g. `feature/p3-bronze-streaming`).
-- One logical change per PR. PRs touching `terraform/**` must include the `terraform plan` output in the PR description (automated by CI in Phase 8).
-- Environment promotion is `dev → staging → prod`, gated by manual approval at each boundary — never a direct-to-prod merge.
+- One logical change per PR. PRs touching `terraform/**` automatically get a `terraform plan` comment from CI (`.github/workflows/terraform-plan.yml`, Phase 8) once that environment's credentials are configured as repo secrets.
+- Environment promotion is `dev → staging → prod`, gated by manual approval at each boundary — enforced via GitHub Environment required reviewers on `bundle-deploy.yml`'s `staging`/`prod` jobs (Phase 8) — never a direct-to-prod merge.
 
 ## Coding Standards
 
@@ -32,7 +32,9 @@
 
 - `src/libs/` and `src/pipelines/` require unit tests (`tests/unit/`) for any non-trivial transformation logic — added starting Phase 3.
 - Integration tests (`tests/integration/`) exercise a pipeline end-to-end against a scaled-down dev dataset — added starting Phase 4.
-- No PR merges with failing tests or below the coverage threshold set in Phase 8's CI configuration.
+- Performance tests (`tests/performance/`, added Phase 8) are regression guards at synthetic scale, always run (no live credentials needed) — required for a new Gold/ML transform function if it involves a window function or join whose cost could scale non-linearly.
+- Load tests (`tests/load/`, added Phase 8) exercise a real Event Hub/SQL Warehouse at target throughput — skip-gated like integration tests without live credentials.
+- CI (`.github/workflows/lint.yml`, `test.yml`) enforces lint + `tests/unit` + `tests/performance` on every PR; `tests/integration`/`tests/load` run too but self-skip without live credentials until an admin configures them.
 
 ## Commit Messages
 

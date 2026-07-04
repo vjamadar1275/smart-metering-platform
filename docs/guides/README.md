@@ -4,12 +4,12 @@ Operational and developer documentation, added as the phases they document are i
 
 | Guide | Added in | Covers |
 |---|---|---|
-| Developer Guide | Phase 3–5 | Local setup, coding standards, testing conventions, PR workflow |
+| [Developer Guide](DEVELOPER_GUIDE.md) | ✅ Phase 8 | Local setup, coding standards, testing conventions, PR workflow |
 | [Deployment Guide](DEPLOYMENT_GUIDE.md) | ✅ Phase 3 | Terraform state bootstrap, infra apply order, Databricks Asset Bundle deployment, test-traffic generation, rollback |
-| Operations Guide | Phase 8 | Day-2 operations: pipeline restarts, backfills, scaling, on-call |
-| Security Guide | Phase 8 | Key rotation, access reviews, incident response, compliance evidence |
-| Performance Guide | Phase 8 | Benchmarks, sizing methodology, tuning playbooks |
-| Troubleshooting Guide | Phase 8 | Common failure modes and their resolutions across the pipeline |
-| API Documentation | Phase 7 | Model Serving endpoint contracts, agent/RAG API surface |
+| [Operations Guide](OPERATIONS_GUIDE.md) | ✅ Phase 8 | Day-2 operations: pipeline restarts, backfills, scaling, on-call |
+| [Security Guide](SECURITY_GUIDE.md) | ✅ Phase 8 | Key rotation, access reviews, incident response, compliance evidence |
+| [Performance Guide](PERFORMANCE_GUIDE.md) | ✅ Phase 8 | Sizing methodology (and what's not yet measured), tuning playbooks |
+| [Troubleshooting Guide](TROUBLESHOOTING_GUIDE.md) | ✅ Phase 8 | Common failure modes and their resolutions across the pipeline |
+| [API Documentation](API_DOCUMENTATION.md) | ✅ Phase 7 | Model Serving endpoint contract, NL agent interface/safety contract |
 
-Until then, [ARCHITECTURE.md](../architecture/ARCHITECTURE.md) and the [ADRs](../decisions/) are the authoritative reference for how the platform is designed and why.
+See also [docs/runbooks/](../runbooks/) for step-by-step incident-response and DR-failover procedures, and [ARCHITECTURE.md](../architecture/ARCHITECTURE.md) / the [ADRs](../decisions/) for how the platform is designed and why.
