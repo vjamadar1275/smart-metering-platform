@@ -10,6 +10,18 @@ ruff>=0.6,<1
 black>=24,<25
 pyyaml>=6,<7
 
+# Phase 7 (src/ml/) — the same packages src/ml/training/*.py's Databricks
+# Job clusters install at runtime (see bundles/ml_training_jobs.yml's
+# environment spec), pinned here so tests/unit/test_ml_training.py can run
+# the real training/MLflow-logging path locally.
+scikit-learn>=1.4,<2
+mlflow>=2.14,<4
+# sqlglot is a real runtime dependency of src/ml/agent/nl_analytics_agent.py
+# (SQL-safety validation, not just test tooling) — see
+# bundles/model_serving.yml's serving environment for where it's installed
+# for the deployed agent.
+sqlglot>=25,<26
+
 # Only needed for tests/integration/ (skipped unless DATABRICKS_HOST/
 # DATABRICKS_TOKEN are set — see tests/integration/test_silver_pipeline_integration.py).
 databricks-sdk>=0.30,<1

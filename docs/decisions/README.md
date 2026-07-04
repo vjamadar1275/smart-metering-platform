@@ -15,5 +15,6 @@ Each ADR documents one significant, hard-to-reverse decision: the alternatives c
 | [0009](ADR-0009-event-hub-connector-protocol.md) | Kafka Protocol for Spark Consumption, Native AMQP for Producers |
 | [0010](ADR-0010-silver-dedup-and-late-arrival-strategy.md) | Bounded-Watermark Streaming Dedup (AUTO CDC) + Nightly Batch Reconciliation for Late Arrivals |
 | [0011](ADR-0011-gold-pipeline-split-and-nrw-proxy.md) | Split Gold into a Continuous Pipeline (Hourly) and a Triggered Batch Pipeline (Daily Marts), with a Documented Non-Revenue-Water Proxy |
+| [0012](ADR-0012-phase7-ml-model-design-and-nl-agent-safety.md) | Phase 7 ML Model Framing on Synthetic Data, and Structural (Not Keyword) SQL Safety for the NL Agent |
 
 New ADRs are added as later phases (streaming design, ML model choices, CI/CD gating strategy, etc.) reach decisions worth recording.

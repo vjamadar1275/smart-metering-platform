@@ -1,0 +1,65 @@
+# Databricks Job: trains and registers the four Phase 7 models (leak
+# detection, demand forecasting, anomaly detection, predictive
+# maintenance) — see src/ml/training/*.py for the transformations and
+# ADR-0008/ADR-0012 for the design (why sklearn + MLflow, why each is
+# framed the way it is).
+#
+# One job, four independent tasks (no task depends on another's output —
+# each reads its own Gold table(s) and trains independently), rather than
+# four separate job resources: keeps the "retrain the models" operation as
+# one schedulable/monitorable unit, matching how
+# bundles/gold_batch_pipeline.yml groups its pipeline + trigger job
+# together.
+#
+# Weekly (not daily): unlike the Gold marts, which need to reflect
+# yesterday's data, model quality does not meaningfully change day to day
+# at this platform's data volumes — retraining daily would mostly retrain
+# on noise. Scheduled well after gold_daily_marts_trigger's 05:00 UTC run
+# so that day's Gold data has landed before training reads it.
+
+resources:
+  jobs:
+    ml_model_training:
+      name: "smartmeter-${bundle.target}-ml-model-training"
+
+      schedule:
+        quartz_cron_expression: "0 0 6 ? * SUN"
+        timezone_id: UTC
+        pause_status: ${var.ml_training_pause_status}
+
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
+            dependencies:
+              - scikit-learn>=1.4,<2
+              - mlflow>=2.14,<4
+
+      tasks:
+        - task_key: train_leak_detection
+          environment_key: default
+          spark_python_task:
+            python_file: ../src/ml/training/train_leak_detection.py
+            parameters: ["--catalog", "${var.catalog_name}"]
+
+        - task_key: train_demand_forecasting
+          environment_key: default
+          spark_python_task:
+            python_file: ../src/ml/training/train_demand_forecasting.py
+            parameters: ["--catalog", "${var.catalog_name}"]
+
+        - task_key: train_anomaly_detection
+          environment_key: default
+          spark_python_task:
+            python_file: ../src/ml/training/train_anomaly_detection.py
+            parameters: ["--catalog", "${var.catalog_name}"]
+
+        - task_key: train_predictive_maintenance
+          environment_key: default
+          spark_python_task:
+            python_file: ../src/ml/training/train_predictive_maintenance.py
+            parameters: ["--catalog", "${var.catalog_name}"]
+
+      email_notifications:
+        on_failure:
+          - REPLACE-WITH-ONCALL-DISTRIBUTION-LIST@yourcompany.com

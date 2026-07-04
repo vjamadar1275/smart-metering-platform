@@ -77,7 +77,7 @@ smart-metering-platform/
 | **4** | Silver: cleansing, validation, dedup, enrichment, watermarking | ✅ Complete |
 | **5** | Gold: business KPIs, DMA analytics, customer analytics | ✅ Complete |
 | **6** | SQL Warehouses, dashboards, Power BI | ✅ Complete |
-| 7 | Mosaic AI: leak detection, forecasting, anomaly detection, RAG/agents | ⬜ Not started |
+| **7** | Mosaic AI: leak detection, forecasting, anomaly detection, RAG/agents | ✅ Complete |
 | 8 | Security hardening, governance, monitoring, CI/CD, production readiness | ⬜ Not started |
 
 ## Getting Started

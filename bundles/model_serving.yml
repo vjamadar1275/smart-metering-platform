@@ -1,0 +1,37 @@
+# Mosaic AI Model Serving endpoint for leak_detection_model — see
+# ADR-0008/ADR-0012 for why this is the one Phase 7 model with a serving
+# endpoint (of the four trained models, it's the one an operational
+# consumer — a dashboard button, a future alerting integration — most
+# plausibly needs synchronous scoring for) and src/ml/training/train_leak_detection.py
+# for the model itself.
+#
+# scale_to_zero_enabled: true — NOT the "minimum provisioned throughput for
+# real-time streaming-path scoring" configuration ADR-0008's consequences
+# section describes as the target for a genuinely latency-critical
+# endpoint. This model is currently scored in batch, against
+# gold.hourly_consumption features that only refresh hourly — there is no
+# actual sub-second latency requirement yet to provision for. Wiring this
+# model into a true real-time streaming inference path (scoring each
+# reading as it lands in Silver) is a follow-on, not implemented here —
+# switching scale_to_zero_enabled to false with a nonzero
+# min_provisioned_throughput is the change that follow-on would make.
+
+resources:
+  model_serving_endpoints:
+    leak_detection_endpoint:
+      name: "smartmeter-${bundle.target}-leak-detection"
+      config:
+        served_entities:
+          - name: leak_detection_model_current
+            entity_name: "${var.catalog_name}.ml.leak_detection_model"
+            # Bumped as new versions are trained and promoted — see
+            # src/ml/training/train_leak_detection.py's MLflow registration
+            # (registered_model_name) and the (Phase 8) model-promotion
+            # runbook this needs once one exists.
+            entity_version: "1"
+            workload_size: Small
+            scale_to_zero_enabled: true
+        traffic_config:
+          routes:
+            - served_model_name: leak_detection_model_current
+              traffic_percentage: 100

@@ -62,6 +62,9 @@ variables:
     description: SQL Warehouse ID for sqlw-adhoc — from `terraform output sql_warehouse_ids`.
   sql_warehouse_executive_id:
     description: SQL Warehouse ID for sqlw-executive — from `terraform output sql_warehouse_ids`.
+  ml_training_pause_status:
+    description: UNPAUSED/PAUSED for the weekly ML model training job's schedule — paused by default in dev, where there's too little synthetic history for the training row-count thresholds in src/ml/training/*.py to be met anyway.
+    default: "UNPAUSED"
 
 targets:
   dev:
@@ -80,6 +83,7 @@ targets:
       sql_warehouse_bi_id: REPLACE-WITH-DEV-SQLW-BI-ID # from: terraform output sql_warehouse_ids (terraform/environments/dev)
       sql_warehouse_adhoc_id: REPLACE-WITH-DEV-SQLW-ADHOC-ID
       sql_warehouse_executive_id: REPLACE-WITH-DEV-SQLW-EXECUTIVE-ID
+      ml_training_pause_status: "PAUSED"
     resources:
       pipelines:
         bronze_meter_telemetry:
