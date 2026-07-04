@@ -1,0 +1,93 @@
+name: Deploy Databricks Asset Bundle
+
+# Deploys the Databricks Asset Bundle (pipelines, jobs, dashboards, model
+# serving) on merge to main. dev deploys automatically; staging and prod
+# each require manual approval via their GitHub Environment's configured
+# reviewers (Settings → Environments → staging/prod → required reviewers)
+# — that reviewer gate *is* the "manual approval gate for staging/prod"
+# CONTRIBUTING.md's environment-promotion rule describes, enforced by
+# GitHub rather than by this workflow's own logic.
+#
+# Skipped entirely (all three jobs) until DEV_DATABRICKS_HOST is
+# configured — this repository's bundle has never been deployed to a real
+# workspace (see terraform/README.md), so there is nothing to deploy to
+# yet; this workflow starts being load-bearing the moment that changes,
+# with no edits needed here.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "bundles/**"
+      - "databricks.yml"
+
+concurrency:
+  group: bundle-deploy
+  cancel-in-progress: false # never cancel a deploy already in flight
+
+jobs:
+  deploy-dev:
+    name: Deploy (dev)
+    runs-on: ubuntu-latest
+    if: ${{ vars.DATABRICKS_BUNDLE_DEPLOY_ENABLED == 'true' }}
+    environment: dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: databricks/setup-cli@main
+      - name: databricks bundle validate
+        working-directory: .
+        env:
+          DATABRICKS_HOST: ${{ secrets.DEV_DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DEV_DATABRICKS_TOKEN }}
+        run: databricks bundle validate -t dev
+      - name: databricks bundle deploy
+        env:
+          DATABRICKS_HOST: ${{ secrets.DEV_DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DEV_DATABRICKS_TOKEN }}
+        run: databricks bundle deploy -t dev
+
+  deploy-staging:
+    name: Deploy (staging)
+    runs-on: ubuntu-latest
+    if: ${{ vars.DATABRICKS_BUNDLE_DEPLOY_ENABLED == 'true' }}
+    needs: deploy-dev
+    # GitHub Environment "staging" — configure required reviewers in repo
+    # Settings → Environments so this job pauses for manual approval
+    # before running, per CONTRIBUTING.md's dev -> staging -> prod
+    # promotion rule.
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: databricks/setup-cli@main
+      - name: databricks bundle validate
+        env:
+          DATABRICKS_HOST: ${{ secrets.STAGING_DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.STAGING_DATABRICKS_TOKEN }}
+        run: databricks bundle validate -t staging
+      - name: databricks bundle deploy
+        env:
+          DATABRICKS_HOST: ${{ secrets.STAGING_DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.STAGING_DATABRICKS_TOKEN }}
+        run: databricks bundle deploy -t staging
+
+  deploy-prod:
+    name: Deploy (prod)
+    runs-on: ubuntu-latest
+    if: ${{ vars.DATABRICKS_BUNDLE_DEPLOY_ENABLED == 'true' }}
+    needs: deploy-staging
+    # GitHub Environment "prod" — required reviewers gate this the same
+    # way as staging above; never direct-to-prod (CONTRIBUTING.md).
+    environment: prod
+    steps:
+      - uses: actions/checkout@v4
+      - uses: databricks/setup-cli@main
+      - name: databricks bundle validate
+        env:
+          DATABRICKS_HOST: ${{ secrets.PROD_DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.PROD_DATABRICKS_TOKEN }}
+        run: databricks bundle validate -t prod
+      - name: databricks bundle deploy
+        env:
+          DATABRICKS_HOST: ${{ secrets.PROD_DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.PROD_DATABRICKS_TOKEN }}
+        run: databricks bundle deploy -t prod

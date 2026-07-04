@@ -1,0 +1,47 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  unit-tests:
+    name: pytest (tests/unit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # tests/unit exercises real local PySpark + Delta (via delta-spark) +
+      # MLflow + sklearn — Java is required for the embedded Spark JVM (see
+      # requirements-dev.txt's comment on why these are pinned at all).
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run unit tests
+        run: pytest tests/unit -q
+
+      - name: Run performance regression tests
+        run: pytest tests/performance -q
+
+      # tests/integration/ is skipped automatically without live Databricks
+      # credentials (see tests/integration/README.md) — running it here is
+      # a no-op today, kept so it starts exercising real credentials the
+      # moment DATABRICKS_HOST/DATABRICKS_TOKEN secrets are added for a
+      # long-lived dev workspace, with no workflow change required then.
+      - name: Run integration tests (skips without live credentials)
+        env:
+          DATABRICKS_HOST: ${{ secrets.DEV_DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DEV_DATABRICKS_TOKEN }}
+          SMARTMETER_TEST_CATALOG: smartmeter_dev
+          SMARTMETER_TEST_SQL_WAREHOUSE_HTTP_PATH: ${{ secrets.DEV_SQLW_BI_HTTP_PATH }}
+        run: pytest tests/integration -q

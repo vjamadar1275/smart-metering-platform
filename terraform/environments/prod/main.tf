@@ -271,3 +271,22 @@ module "sql_warehouse_executive" {
     databricks.workspace = databricks.workspace
   }
 }
+
+# --- Monitoring: Log Analytics, diagnostic settings, alerting (Phase 8) ---
+
+module "monitoring" {
+  source = "../../modules/monitoring"
+
+  environment         = var.environment
+  region              = var.primary_region
+  resource_group_name = azurerm_resource_group.monitoring.name
+  retention_days      = var.log_retention_days
+  diagnostic_target_resource_ids = [
+    module.databricks_workspace.workspace_id,
+    module.event_hub.namespace_id,
+    module.storage.storage_account_id,
+    module.key_vault.key_vault_id,
+  ]
+  alert_action_group_email_receivers = var.alert_action_group_email_receivers
+  tags                               = local.standard_tags
+}

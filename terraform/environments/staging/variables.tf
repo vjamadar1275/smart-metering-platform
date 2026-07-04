@@ -116,3 +116,15 @@ variable "sql_warehouse_executive_group_names" {
   type        = list(string)
   default     = ["smartmeter-staging-executives"]
 }
+
+variable "alert_action_group_email_receivers" {
+  description = "Map of receiver name to email address for the shared Azure Monitor action group — pipeline/job failure alerts (see terraform/modules/monitoring)."
+  type        = map(string)
+  default     = { platform-oncall = "REPLACE-WITH-ONCALL-EMAIL@yourcompany.com" }
+}
+
+variable "log_retention_days" {
+  description = "Log Analytics retention, in days. Longer than dev — staging validates production-representative audit/compliance behavior before prod release."
+  type        = number
+  default     = 90
+}

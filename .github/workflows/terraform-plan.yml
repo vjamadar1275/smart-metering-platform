@@ -1,0 +1,156 @@
+name: Terraform Plan
+
+# Runs `terraform plan` for every environment on any PR touching
+# terraform/**, and posts the plan output as a PR comment — see
+# CONTRIBUTING.md's "PRs touching terraform/** must include the `terraform
+# plan` output in the PR description" requirement, automated here.
+#
+# Three explicit jobs (not a matrix) rather than a matrix with a
+# dynamically-keyed secret/vars lookup (e.g. `secrets[matrix.environment]`)
+# — GitHub Actions' expression syntax does not reliably support indexing
+# `secrets`/`vars` by a computed matrix value, so each environment's gating
+# condition names its own repo variable explicitly instead.
+on:
+  pull_request:
+    paths:
+      - "terraform/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  plan-dev:
+    name: plan (dev)
+    runs-on: ubuntu-latest
+    # Skipped (not failed) until this environment's Azure credentials are
+    # configured as repo secrets — this repository's infrastructure has
+    # never been applied to live Azure (see terraform/README.md), so
+    # ARM_CLIENT_ID etc. legitimately don't exist until a platform admin
+    # bootstraps that environment for real. A hard-failing job here would
+    # just be permanently red for no actionable reason until then.
+    if: ${{ vars.TERRAFORM_CREDENTIALS_CONFIGURED_DEV == 'true' }}
+    environment: dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+      - name: terraform init && plan
+        working-directory: terraform/environments/dev
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_databricks_account_id: ${{ secrets.DATABRICKS_ACCOUNT_ID }}
+          TF_VAR_cost_center: ${{ vars.COST_CENTER }}
+        run: |
+          terraform init
+          terraform plan -no-color -input=false | tee plan_output.txt
+      - name: Comment plan on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'terraform/environments/dev/plan_output.txt';
+            let body = '#### Terraform Plan — dev\n';
+            if (fs.existsSync(path)) {
+              body += '```\n' + fs.readFileSync(path, 'utf8').slice(0, 60000) + '\n```';
+            } else {
+              body += 'Plan step did not produce output (see job logs).';
+            }
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
+
+  plan-staging:
+    name: plan (staging)
+    runs-on: ubuntu-latest
+    if: ${{ vars.TERRAFORM_CREDENTIALS_CONFIGURED_STAGING == 'true' }}
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+      - name: terraform init && plan
+        working-directory: terraform/environments/staging
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_databricks_account_id: ${{ secrets.DATABRICKS_ACCOUNT_ID }}
+          TF_VAR_cost_center: ${{ vars.COST_CENTER }}
+        run: |
+          terraform init
+          terraform plan -no-color -input=false | tee plan_output.txt
+      - name: Comment plan on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'terraform/environments/staging/plan_output.txt';
+            let body = '#### Terraform Plan — staging\n';
+            if (fs.existsSync(path)) {
+              body += '```\n' + fs.readFileSync(path, 'utf8').slice(0, 60000) + '\n```';
+            } else {
+              body += 'Plan step did not produce output (see job logs).';
+            }
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
+
+  plan-prod:
+    name: plan (prod)
+    runs-on: ubuntu-latest
+    if: ${{ vars.TERRAFORM_CREDENTIALS_CONFIGURED_PROD == 'true' }}
+    environment: prod
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+      - name: terraform init && plan
+        working-directory: terraform/environments/prod
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_databricks_account_id: ${{ secrets.DATABRICKS_ACCOUNT_ID }}
+          TF_VAR_cost_center: ${{ vars.COST_CENTER }}
+        run: |
+          terraform init
+          terraform plan -no-color -input=false | tee plan_output.txt
+      - name: Comment plan on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'terraform/environments/prod/plan_output.txt';
+            let body = '#### Terraform Plan — prod\n';
+            if (fs.existsSync(path)) {
+              body += '```\n' + fs.readFileSync(path, 'utf8').slice(0, 60000) + '\n```';
+            } else {
+              body += 'Plan step did not produce output (see job logs).';
+            }
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });

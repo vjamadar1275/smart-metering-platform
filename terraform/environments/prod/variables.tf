@@ -118,3 +118,15 @@ variable "sql_warehouse_executive_group_names" {
   type        = list(string)
   default     = ["smartmeter-prod-executives"]
 }
+
+variable "alert_action_group_email_receivers" {
+  description = "Map of receiver name to email address for the shared Azure Monitor action group — pipeline/job failure alerts (see terraform/modules/monitoring)."
+  type        = map(string)
+  default     = { platform-oncall = "REPLACE-WITH-ONCALL-EMAIL@yourcompany.com" }
+}
+
+variable "log_retention_days" {
+  description = "Log Analytics retention, in days. Longest of the three environments — prod carries regulated/PII utility customer data and the longest compliance evidence window (see security-diagram.md)."
+  type        = number
+  default     = 365
+}

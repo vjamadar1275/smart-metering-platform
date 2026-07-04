@@ -1,0 +1,47 @@
+name: Terraform Apply (manual)
+
+# Manually-triggered only (workflow_dispatch) — this repository has never
+# applied its Terraform to live Azure (see terraform/README.md), and
+# `apply` is the platform's single highest-blast-radius action. Unlike
+# bundle-deploy.yml (auto for dev, gated for staging/prod), infra apply
+# requires an explicit human to open the Actions tab and run this workflow
+# for a specific environment, in addition to that environment's GitHub
+# Environment reviewer gate — two deliberate steps, not one.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to apply (dev/staging/prod)"
+        required: true
+        type: choice
+        options: [dev, staging, prod]
+
+jobs:
+  apply:
+    name: terraform apply (${{ inputs.environment }})
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }} # GitHub Environment reviewer gate
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+      - name: terraform init
+        working-directory: terraform/environments/${{ inputs.environment }}
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+        run: terraform init
+      - name: terraform apply
+        working-directory: terraform/environments/${{ inputs.environment }}
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_databricks_account_id: ${{ secrets.DATABRICKS_ACCOUNT_ID }}
+          TF_VAR_cost_center: ${{ vars.COST_CENTER }}
+        run: terraform apply -auto-approve -input=false

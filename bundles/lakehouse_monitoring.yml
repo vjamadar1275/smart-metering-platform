@@ -1,0 +1,27 @@
+# Databricks Job: creates/refreshes Lakehouse Monitors on the key
+# Silver/Gold tables — see src/jobs/create_lakehouse_monitors.py for the
+# transformation. Manual/low-frequency, like
+# bundles/seed_reference_data_job.yml — monitor *configuration* changes
+# rarely; the data those monitors observe is re-profiled on each monitor's
+# own internal schedule, not by re-running this job.
+
+resources:
+  jobs:
+    create_lakehouse_monitors:
+      name: "smartmeter-${bundle.target}-create-lakehouse-monitors"
+
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
+
+      tasks:
+        - task_key: create_monitors
+          environment_key: default
+          spark_python_task:
+            python_file: ../src/jobs/create_lakehouse_monitors.py
+            parameters: ["--catalog", "${var.catalog_name}"]
+
+      email_notifications:
+        on_failure:
+          - REPLACE-WITH-ONCALL-DISTRIBUTION-LIST@yourcompany.com

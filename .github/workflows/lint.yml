@@ -1,0 +1,42 @@
+name: Lint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  python-lint:
+    name: Python (ruff + black)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install lint tools
+        run: pip install ruff black
+
+      - name: ruff check
+        run: ruff check src tests tools
+
+      - name: black --check
+        run: black --check src tests tools
+
+  terraform-fmt:
+    name: Terraform fmt (environments + modules)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+
+      - name: terraform fmt -check
+        # -recursive from terraform/ (not per-environment) so it also
+        # covers terraform/modules/ — running it per-environment-directory
+        # would miss the shared modules entirely.
+        run: terraform fmt -check -recursive terraform/
